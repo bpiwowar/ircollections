@@ -1,0 +1,25 @@
+
+$ sh scripts/get-tasks
+List of all tasks:
+
+trec1/adhoc ...................................... Ad-hoc task of trec1
+trec2/adhoc ...................................... Ad-hoc task of trec2
+trec3/adhoc ...................................... Ad-hoc task of trec3
+trec4/adhoc ...................................... Ad-hoc task of trec4
+trec5/adhoc ...................................... Ad-hoc task of trec5
+trec6/adhoc ...................................... Ad-hoc task of trec6
+trec7/adhoc ...................................... Ad-hoc task of trec7
+trec8/adhoc ...................................... Ad-hoc task of TREC-8
+trec-2003/web .................................... Web task of TREC-2003 (distillation + named page)
+trec-2003/web/distillation ....................... Web distillation (TREC-2003)
+trec-2004/robust ................................. Robust task of TREC 2004
+trec-2004/web .................................... Web task of TREC 2004
+
+$ sh scripts/get-tasks trec-2004/robust
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="trec-2004/robust">
+   <type>TREC</type>
+   <collection id="trec8/adhoc">cols/trec8.col.files</collection>
+   <topics id="trec-2004/robust">trec2004/robust/trec2004.robust.topics</topics>
+   <qrels>trec2004/robust/robust04.qrels.all</qrels>
+</task>

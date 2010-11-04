@@ -1,0 +1,4 @@
+#!/bin/sh
+
+dir="$(dirname $(readlink -f "$0"))"
+java -cp $dir/../lib/saxon8.jar net.sf.saxon.Query "$@"

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Prepares (download and verifies) a task
+# (c) 2010, B. Piwowarski
+
+dir="$(dirname "$0")"
+
+. $dir/env
+
+xml="$(sh $dir/get-tasks "$1")"
