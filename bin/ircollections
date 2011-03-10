@@ -103,10 +103,21 @@ def getTask(doc, taskid):
     
 
 def usage():
+    def command(cmd, desc):
+        print "%-20s %s" % (cmd, desc)
+        
     print "Usage:\n\nircollections [command]"
     print
-    print "where command can be get"
-
+    print "where command can be:"
+    print
+    command("help CMD","Give help for the command CMD")
+    print
+    command("list","List all available tasks")
+    command("get","Get the definition of a task")
+    command("prepare", "Prepare a task")
+    command("evaluate", "Evaluate a run of a task")
+    print
+    
 def main(dir, argv):
     tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
     print "Using file %s" % tasksfile
@@ -133,6 +144,10 @@ def main(dir, argv):
             command = args[0]
             if command == "list":  listAllTasks(doc)
             elif command == "get": getTask(doc, args[1])
+            elif command == "evaluate":
+                raise Exception("Command not yet implemented")
+            elif command == "prepare":
+                raise Exception("Command not yet implemented")
             else:
                 print "Command not recognised (%s)" % command
                 usage()
