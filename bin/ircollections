@@ -1,0 +1,148 @@
+#!/usr/bin/python
+
+#
+# Main file to access IR tasks
+# and manage them
+#
+
+# id=trec.2003/web/distillation; bin/ircollections get $id; echo " **** VS ****"; scripts/get-tasks $id; echo
+
+
+from lxml import etree
+from lxml.builder import E
+
+import sys
+import getopt
+import os.path
+from os.path import dirname, normpath, join
+
+
+#########################
+### Utility functions ###
+#########################
+
+def getAllTasks(doc):
+    """ Get the list of all non abstract tasks
+    """
+    tasks = {}
+    for e in doc.xpath('//task[not(@abstract)]'):
+        name = None
+        for p in e.xpath("ancestor-or-self::task"):
+            if name is None: name = p.get("name")
+            else: name = "%s/%s" % (name, p.get("name"))
+        tasks[name] =  e
+    return tasks
+
+def find(task, name):
+    """ Find the first task ancestor that has an element of a given name
+    """
+    l = task.xpath("ancestor-or-self::task[%s][1]/%s" % (name, name))
+    if len(l) == 0: raise Exception("Could not find a definition for task '%s'" % (name))
+    return l[0]
+
+
+def findDefinition(doc, id, parentType, type):
+    el = doc.xpath("//%s/%s[@id='%s']" % (parentType, type, id))
+    if len(el) != 1: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
+    el = el[0]
+    alias = el.get("alias")
+    if not alias is None:
+        a = findDefinition(doc, alias, parentType, type)
+        a.append(el)
+        return a
+    return [el]
+
+
+#############
+### Tasks ###
+#############
+
+### List all tasks
+
+def listAllTasks(doc):
+    """ List all tasks
+    """
+    tasks = getAllTasks(doc)
+    maxLen = 0
+    for e in tasks.keys():
+        l = len(e)
+        if maxLen < l: maxLen = l
+
+    f = "%%-%ds %%s" % (maxLen + 3)
+    for name, e in tasks.iteritems():
+        print f % (name, e.get("description"))
+
+
+
+
+def getTask(doc, taskid):
+    
+    tasks = getAllTasks(doc)
+    task = tasks.get(taskid, None)
+    if task is None:
+        print "No task with id %s" % taskname
+        raise Exception()
+
+    # Now we process it
+    # print etree.tostring(task)
+    
+    collection = findDefinition(doc, find(task, "collection").text, "collections", "collection")
+    if len(collection) > 1:
+        collection[0].set("aliased-from", collection[-1].get("id"))
+
+    root = E.task(
+        find(task, "type"),
+        collection[0],
+        findDefinition(doc, find(task, "topics").text, "topics-sets", "topics")[0],
+        find(task, "qrels"),
+        id = taskid
+    )
+    print etree.tostring(root)
+
+    
+    
+
+def usage():
+    print "Usage:\n\nircollections [command]"
+    print
+    print "where command can be get"
+
+def main(dir, argv):
+    tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
+    print "Using file %s" % tasksfile
+
+    # Parse command line arguments
+    try:                                
+        opts, args = getopt.getopt(argv, "hg:d", ["help", "task="])
+
+        for opt,arg in opts:
+            if opt in ("-h","--help"):
+                usage()
+                sys.exit()
+    
+    except getopt.GetoptError:           
+        usage()                
+        sys.exit(2)
+
+
+    doc = etree.parse(tasksfile)
+    if len(args) == 0:
+        usage()
+    else:
+        try:
+            command = args[0]
+            if command == "list":  listAllTasks(doc)
+            elif command == "get": getTask(doc, args[1])
+            else:
+                print "Command not recognised (%s)" % command
+                usage()
+                sys.exit(1)
+        except Exception as e:
+            print "Error while running command %s:" % command
+            print e
+            sys.exit(2)
+
+    
+if __name__ == "__main__":
+    dir=os.path.dirname(os.path.abspath(os.path.dirname(sys.argv[0])))
+    main(dir, sys.argv[1:])

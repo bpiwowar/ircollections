@@ -13,6 +13,6 @@ if test "$id" = ""; then
     method='!method=text'
 fi
 
-java -cp $dir/../lib/saxon8.jar net.sf.saxon.Query $dir/get-task.xq +doc=$dir/tasks.xml id="$id" "$method"
+java -cp $dir/../lib/saxon8.jar net.sf.saxon.Query $dir/get-task.xq +doc=$dir/../etc/tasks.xml id="$id" "$method"
 
 
