@@ -1,0 +1,189 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass docbook-book
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+IR Collections
+\end_layout
+
+\begin_layout Author
+B.
+ Piwowarski
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+This projects aims at grouping utilities to deal with the numerous and heterogen
+ous information retrieval (IR) test collections, and to automate/standardize
+ common operations like downloading topics, assessments or evaluating.
+\end_layout
+
+\begin_layout Standard
+Each IR task has a unique identifier.
+ For example, the ad-hoc track of TREC-1 has the identifier trec.1/adhoc.
+\end_layout
+
+\begin_layout Standard
+To each task is associated an XML description, composed of informations
+ about the document collection, the topics and the assessments.
+ The IR task trec.1/adhoc is associated with
+\end_layout
+
+\begin_layout Code
+
+<?xml version="1.0"?> 
+\end_layout
+
+\begin_layout Code
+
+<task xmlns="http://ircollections.sourceforge.net" id="trec.1/adhoc">
+\end_layout
+
+\begin_layout Code
+
+<collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792
+ trec.ziff12" path=".../cols/trec1.col.files"/>   
+\end_layout
+
+\begin_layout Code
+
+  <topics id="trec.1.adhoc" path=".../trec/trec1/adhoc/trec1.topics.51-100" type="trec"
+>     
+\end_layout
+
+\begin_layout Code
+
+    <property parts="desc"/>   
+\end_layout
+
+\begin_layout Code
+
+  </topics>
+\end_layout
+
+\begin_layout Code
+
+  <qrels path=".../trec/trec1/adhoc/trec1.adhoc.trec1.qrels" id="trec.1.adhoc"/>
+ 
+\end_layout
+
+\begin_layout Code
+
+</task> 
+\end_layout
+
+\begin_layout Standard
+
+The format of the XML specification of an IR task is described in Section
+ 
+\lang english
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:xml"
+
+\end_inset
+
+
+.
+\end_layout
+
+\begin_layout Section
+Installation
+\end_layout
+
+\begin_layout Standard
+The code for the moment can only be accessed through subversion
+\end_layout
+
+\begin_layout Code
+
+svn co https://ircollections.svn.sourceforge.net/svnroot/ircollections ircollection
+s  
+\end_layout
+
+\begin_layout Standard
+This should create a directory called 
+\family typewriter
+ircollections
+\family default
+ in the current directory
+\end_layout
+
+\begin_layout Section
+IR Task XML 
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:xml"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
