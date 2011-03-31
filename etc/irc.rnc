@@ -1,0 +1,27 @@
+default namespace = "http://www.example.com/address"
+
+element task {
+
+  ## Describes an XML collection
+  element documents { 
+     ## The ID of this document collection
+     attribute id { text },
+     attribute aliased-from { text },
+     attribute type { "trec" | "inex" },
+     attribute path { text }
+  },
+
+  ## Describes the topics  
+  element topics { 
+     attribute id { text },
+     attribute type { "trec" | "inex" },
+     attribute path { text }
+  },
+ 
+ ## Describes the qrels
+ element qrels { 
+     attribute id { text },
+     attribute type { "trec" | "trec.subtopic" | "inex" | "inex.trec" },
+     attribute path { text }
+ }
+}
