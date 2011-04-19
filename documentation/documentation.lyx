@@ -2,7 +2,7 @@
 \lyxformat 413
 \begin_document
 \begin_header
-\textclass docbook-book
+\textclass docbook
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -69,6 +69,29 @@ B.
  Piwowarski
 \end_layout
 
+\begin_layout Standard
+This is a sourceforge project.
+ The project page on sourceforge, where you can report bugs or ask questions,
+ is 
+\begin_inset CommandInset href
+LatexCommand href
+name "http://sourceforge.net/projects/ircollections/"
+target "http://sourceforge.net/projects/ircollections/"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Introduction
 \end_layout
@@ -92,45 +115,60 @@ To each task is associated an XML description, composed of informations
 
 \begin_layout Code
 
-<?xml version="1.0"?> 
 \end_layout
 
-\begin_layout Code
+\begin_layout Standard
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<?xml version="1.0"?>
+\end_layout
+
+\begin_layout Plain Layout
 
 <task xmlns="http://ircollections.sourceforge.net" id="trec.1/adhoc">
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
 <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792
  trec.ziff12" path=".../cols/trec1.col.files"/>   
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
   <topics id="trec.1.adhoc" path=".../trec/trec1/adhoc/trec1.topics.51-100" type="trec"
 >     
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
     <property parts="desc"/>   
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
   </topics>
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
   <qrels path=".../trec/trec1/adhoc/trec1.adhoc.trec1.qrels" id="trec.1.adhoc"/>
  
 \end_layout
 
-\begin_layout Code
+\begin_layout Plain Layout
 
 </task> 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -157,10 +195,20 @@ Installation
 The code for the moment can only be accessed through subversion
 \end_layout
 
-\begin_layout Code
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
 
 svn co https://ircollections.svn.sourceforge.net/svnroot/ircollections ircollection
 s  
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -168,7 +216,20 @@ This should create a directory called
 \family typewriter
 ircollections
 \family default
- in the current directory
+ in the current directory.
+ 
+\end_layout
+
+\begin_layout Standard
+In order to evaluate runs, the following should be downloaded:
+\end_layout
+
+\begin_layout Paragraph
+Trec-eval
+\end_layout
+
+\begin_layout Standard
+The TREC evaluation program
 \end_layout
 
 \begin_layout Section
@@ -183,6 +244,92 @@ name "sec:xml"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Configuration files
+\end_layout
+
+\begin_layout Section
+The commands
+\end_layout
+
+\begin_layout Standard
+All the commands can be accessed through the ircollections python script:
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ircollections <command> <command arguments...>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The available commands 
+\series bold
+list
+\series default
+, 
+\series bold
+get
+\series default
+, 
+\series bold
+prepare
+\series default
+, and 
+\series bold
+evaluate
+\series default
+.
+\end_layout
+
+\begin_layout Paragraph
+list 
+\end_layout
+
+\begin_layout Standard
+List all the available tasks
+\end_layout
+
+\begin_layout Paragraph
+get ID [ID ...]
+\end_layout
+
+\begin_layout Standard
+Get the XML definition of one or more tasks.
+ This command takes one or more arguments which are the task IDs and outputs
+ the different definitions.
+ If more than one task is specified, the definitions are enclosed in an
+ XML document
+\end_layout
+
+\begin_layout Paragraph
+prepare ID [ID ...]
+\end_layout
+
+\begin_layout Standard
+Prepare one or more tasks.
+ This command takes a list of task IDs as argument and prepare them by downloadi
+ng and processing automatically the different files (topics, qrels)
+\end_layout
+
+\begin_layout Paragraph
+evaluate ID <run path>
+\end_layout
+
+\begin_layout Standard
+Evaluate a run for a given task ID.
 \end_layout
 
 \end_body

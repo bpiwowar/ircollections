@@ -20,6 +20,7 @@ import tempfile
 import tarfile
 import gzip
 import shutil
+import re
 
 ########################
 ### Global variables ###
@@ -50,17 +51,7 @@ def log(message):
     sys.stderr.write(message)
     sys.stderr.write("\n")
 
-def getAllTasks(doc):
-    """ Get the list of all non abstract tasks
-    """
-    tasks = {}
-    for e in doc.xpath('//irc:task[not(@abstract)]',namespaces=ircns):
-        name = None
-        for p in e.xpath("ancestor-or-self::irc:task", namespaces=ircns):
-            if name is None: name = p.get("name")
-            else: name = "%s/%s" % (name, p.get("name"))
-        tasks[name] =  e
-    return tasks
+
 
 def find(task, name):
     """ Find the first task ancestor that has an element of a given name
@@ -84,14 +75,57 @@ def findDefinition(doc, id, parentType, type):
 def absolutePath(relPath):
     return os.path.join(ircdir, relPath)
 
+def xpath(node, path):
+    return node.xpath(path, namespaces = ircns)
 
+def xpath1(node, path):
+    return node.xpath(path, namespaces = ircns)[0]
+
+
+# --- Options
+
+class Configuration():
+    def __init__(self, dir):
+        tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
+        log("Using the task file '%s'" % tasksfile)
+        self.colls = etree.parse(os.path.join(dir,os.path.join("etc", "collections.xml")))
+        self.doc = etree.parse(tasksfile)
+        
+        self.tasks = {}
+        for e in xpath(self.doc, '//irc:task[not(@abstract)]'):
+            name = None
+            for p in xpath(e, "ancestor-or-self::irc:task"):
+                if name is None: name = p.get("name")
+                else: name = "%s/%s" % (name, p.get("name"))
+            self.tasks[name] =  e
+        
+    def getCollectionBasePath(self, id):
+        priority = 0
+        path = None
+        for c in xpath(self.colls, "/collections/basepath"):
+            if c.get("pattern") is None:
+                if priority <= 0: path=c.text
+        return path
+        
+    def getAllTasks(self):
+        """ Get the list of all non abstract tasks
+        """
+        return self.tasks
+
+        
+
+        
 # --- Get task
-def getTask(doc, taskid):
+def getTask(config, taskid):
     
-    tasks = getAllTasks(doc)
+    tasks = config.getAllTasks()
+    doc = config.doc
+
     task = tasks.get(taskid, None)
     if task is None:
         raise Exception("No task with id %s" % taskid)
+        
+        
 
     # Now we process it
     # print etree.tostring(task)
@@ -105,7 +139,12 @@ def getTask(doc, taskid):
         collection[0].set("aliased-from", collection[-1].get("id"))
     
     if collection.get("id") is None: collection.set("id", taskid)
-    collection.set("path", absolutePath(collection.get("path")))
+
+    # Processing patterns   
+    for e in xpath(doc, "//irc:collection[@pattern]"):
+        if re.match(e.get("pattern"), collection.get("id")):
+            type = e.get("type")
+            if not type is None: collection.set("type", type)
 
     # Process qrels
     qrels = find(task, "qrels")
@@ -115,6 +154,10 @@ def getTask(doc, taskid):
     # topics
     topics = findDefinition(doc, find(task, "topics").text, "topics-sets", "topics")[0]
     topics.set("path", absolutePath(topics.get("path")))
+    
+
+        
+
     
     # Generating the final XML
     log("Generating XML")    
@@ -133,10 +176,10 @@ def getTask(doc, taskid):
 ### List ###
 ############
 
-def listAllTasks(doc):
+def listAllTasks(config):
     """ List all tasks
     """
-    tasks = getAllTasks(doc)
+    tasks = config.getAllTasks()
     maxLen = 0
     for e in tasks.keys():
         l = len(e)
@@ -151,17 +194,34 @@ def listAllTasks(doc):
 ###########
 
 def printTask(doc, taskid):
-    root=getTask(doc, taskid)
-    print(etree.tostring(root, pretty_print=True))
+    task=getTask(doc, taskid)
+    docs = xpath1(task, "/irc:task/irc:collection")
+    docs.set("path", absolutePath("cols/%s" % docs.get("id")))
+    print(etree.tostring(task, pretty_print=True))
 
 
 ###############
 ### Prepare ###
 ###############
 
-def prepareTask(doc, taskid):
-    task = getTask(doc, taskid)
+def prepareTask(config, taskid):
+    doc = config.doc
+    task = getTask(config, taskid)
+    
+    # --- Make paths absolute
+#    print etree.tostring(task)
 
+    print "Generating the collection file"
+    docs = xpath1(task, "/irc:task/irc:collection")
+    
+    basepath = config.getCollectionBasePath(docs.get("id"))
+    input = file(os.path.join(absolutePath("docs"), "%s.relfiles" % docs.get("id")),"r")
+    out = file(os.path.join(absolutePath("cols"), "%s" % docs.get("id")),"w")
+    for line in input.readlines():
+        out.write(os.path.join(basepath, line))
+    out.close()
+    input.close()
+    
     # --- Get qrels and topics
     for info in [ ["irc:qrels", "qrels", ircqrels], ["irc:topics", "topics", irctopics] ]:
         path = task.xpath("%s/@path" % info[0], namespaces = ircns)[0]
@@ -268,9 +328,6 @@ def usage():
     print
     
 def main(dir, argv):
-    tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
-    log("Using the task file '%s'" % tasksfile)
-
     # Parse command line arguments
     try:                                
         opts, args = getopt.getopt(argv, "hg:d", ["help", "task="])
@@ -285,18 +342,19 @@ def main(dir, argv):
         sys.exit(2)
 
 
-    doc = etree.parse(tasksfile)
+    
     if len(args) == 0:
         usage()
     else:
-#        try:
+            config = Configuration(dir)
+            
             command = args[0]
-            if command == "list":  listAllTasks(doc)
-            elif command == "get": printTask(doc, args[1])
+            if command == "list":  listAllTasks(config)
+            elif command == "get": printTask(config, args[1])
             elif command == "evaluate":
                 raise Exception("Command not yet implemented")
             elif command == "prepare":
-                prepareTask(doc, args[1])
+                prepareTask(config, args[1])
             else:
                 print "Command not recognised (%s)" % command
                 usage()

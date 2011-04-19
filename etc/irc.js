@@ -4,10 +4,13 @@
 
 */
 
-var irc_dir = java.io.File(xpm.getScriptPath()).getParentFile().getParentFile();
+var script_path = xpm.getScriptPath();
+var irc_dir = java.io.File(script_path).getParentFile().getParentFile();
 xpm.log("IR collections directory is %s", irc_dir);
 
 var irc_bin = java.io.File(java.io.File(irc_dir,"bin"), "ircollections");
+
+var xpmns = new Namespace(xpm.ns());
 
 
 // ---	
@@ -20,8 +23,10 @@ var irc_bin = java.io.File(java.io.File(irc_dir,"bin"), "ircollections");
  @param y Fragment identifier
 */
 var ircns = function(x,y) { 
-	return "http://ircollections.sf.net" + (x ?  "/" + x : "") + (y ? ":" + y : "" )
+	return "http://ircollections.sourceforge.net" + (x ?  "/" + x : "") + (y ? ":" + y : "" )
 };
+
+var irc = new Namespace(ircns());
 
 // --- This task
 var ircollections = {
@@ -51,21 +56,26 @@ var ircollections = {
 		
 		// Running
 		this.run = function() { 
+			var inputs = this.inputs;
+			xpm.log("IR task is [%s]", inputs.id);
+			
             // run now (lightweight process)
-            xpm.log("Retrieving task with id %s (%s)", this.id, irc_bin.toString());
+            if (inputs.id == undefined) 
+            	throw "Undefined id";
             
-			java.lang.System.err.println(irc_bin.toString());
-            java.lang.System.err.println(this.id);
+            xpm.log("Retrieving task with id %s (%s)", inputs.id, irc_bin.toString());
+            
+			xpm.log(irc_bin.toString());
+            xpm.log(inputs.id);
 
-			output = xpm.evaluate([irc_bin.toString(), "get", this.id]);
+			output = xpm.evaluate([irc_bin.toString(), "get", inputs.id]);
             
             
             // Get the output
             if (output[0] != 0) 
-            	throw "Error while running get-task: error code is " + output[0];
+            	throw "Error while running get-task: error code is " + output[0] + ", command was " + [irc_bin.toString(), "get", inputs.id];
             
 			r = new XML(output[1]);
-            xpm.log("Output is: %s", r);
             
 			/*
 			 * Example of output: 
@@ -77,22 +87,22 @@ var ircollections = {
 			 */
 			
 			// Redefine the topics
-			if (this.topics != undefined)  {
+			if (inputs.topics != undefined)  {
 				// Simply copy the definition
-                r.topics = this.topics;
+                r.topics = inputs.topics;
             }
-            
+                        
             // Set identifiers for experimaestro
-            r.topics.@xpm::id = "topics";
-            r.topics.@xpm::value = r.topics.id;
+            r.irc::topics.@xpmns::id = "topics";
+            r.irc::topics.@xpmns::value = r.topics.id;
             
-            r.documents.@xpm::id = "documents";
-            r.documents.* +=  <param xmlns={xpm.ns()} id="id">{r.@id}</param>;;
+            r.irc::collection.@xpmns::id = "documents";
+            r.irc::collection.* +=  <param xmlns={xpm.ns()} id="id">{r.@id}</param>;;
             
-			r.qrels.@xpm::id = "qrels";
-			r.qrels.@xpm::value = "";
+			r.irc::qrels.@xpmns::id = "qrels";
+			r.qrels.@xpmns::value = "";
 			
-			r.* += <param xmlns={xpm.ns()} id="task">r.@id</param>;
+			r.* += <param xmlns={xpm.ns()} id="task">{r.@id}</param>;
 			
 
 			return <outputs>
@@ -104,4 +114,4 @@ var ircollections = {
 	}
 };
 
-xpm.addTask(ircollections);
+xpm.addTaskFactory(ircollections);

@@ -16,7 +16,7 @@
   -->
 
   <collections>
-  	<!-- Global definitions -->
+  	<!-- Global definitions: trec collections are of type trec -->
   	<collection pattern="trec.*" type="trec"/>
   
     <!-- Sub-collections used in TREC -->
@@ -43,7 +43,7 @@
     <collection id="trec.wt10g" type="trec.web">cols/wt10g.col.files</collection>
 
 
-    <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12" path="cols/trec1.col.files"/>
+    <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12" type="trec"/>
     <collection id="trec.2.adhoc" alias="trec.1.adhoc"/>
     <collection id="trec.3.adhoc" alias="trec.1.adhoc"/>
     <collection id="trec.4.adhoc" ref="ap8890 fr88 sjm1 usp93 wsj9092 ziff23" path="cols/trec4.col.files"/>
