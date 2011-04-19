@@ -30,6 +30,8 @@ import re
 ircdir=os.path.dirname(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
 ircnsNone = {None : "http://ircollections.sourceforge.net"}
 ircns = { "irc": "http://ircollections.sourceforge.net" }
+E = ElementMaker(namespace="http://ircollections.sourceforge.net", nsmap=ircnsNone)
+
 
 #########################
 ### Utility functions ###
@@ -62,7 +64,10 @@ def find(task, name):
 
 
 def findDefinition(doc, id, parentType, type):
-    el = doc.xpath("//irc:%s/irc:%s[@id='%s']" % (parentType, type, id), namespaces=ircns)
+    """Find a definition for a given id
+    """
+    xpath = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
+    el = doc.xpath(xpath, namespaces=ircns)
     if len(el) != 1: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
     el = el[0]
     alias = el.get("alias")
@@ -72,8 +77,9 @@ def findDefinition(doc, id, parentType, type):
         return a
     return [el]
 
-def absolutePath(relPath):
-    return os.path.join(ircdir, relPath)
+def absolutePath(*args):
+    """Returns the absolute path of a path relative to the IR collections base directory"""
+    return os.path.join(ircdir, os.path.join(*args))
 
 def xpath(node, path):
     return node.xpath(path, namespaces = ircns)
@@ -82,15 +88,20 @@ def xpath1(node, path):
     return node.xpath(path, namespaces = ircns)[0]
 
 
-# --- Options
+###############
+### Classes ###
+###############
 
-class Configuration():
+class Tasks():
     def __init__(self, dir):
         tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
-        log("Using the task file '%s'" % tasksfile)
         self.colls = etree.parse(os.path.join(dir,os.path.join("etc", "collections.xml")))
         self.doc = etree.parse(tasksfile)
+
+        log("Using the task file '%s'" % tasksfile)
         
+        # Pre-compute the list of available tasks 
+        # and get their corresponding XML node
         self.tasks = {}
         for e in xpath(self.doc, '//irc:task[not(@abstract)]'):
             name = None
@@ -99,7 +110,10 @@ class Configuration():
                 else: name = "%s/%s" % (name, p.get("name"))
             self.tasks[name] =  e
         
+        
     def getCollectionBasePath(self, id):
+        """Get the documents base path in order to create an absolute path to document files
+        """
         priority = 0
         path = None
         for c in xpath(self.colls, "/collections/basepath"):
@@ -111,75 +125,129 @@ class Configuration():
         """ Get the list of all non abstract tasks
         """
         return self.tasks
+        
+    def getTask(self, id):
+        return Task(self.doc, self.tasks.get(id))
 
+
+class Documents:
+    """This defines a set of documents
+    """
+    def __init__(self, doc, id):
+        collection = findDefinition(doc, id, "collections", "collection")
+        
+        if len(collection) == 0:
+            raise Exception("Could not find collection with id [%s]" % id)
+        
+        if len(collection) > 1:
+            self.aliased_from = collection[-1].get("id")
+        
+        self.collection = collection[0]
+        self.type = self.collection.get("type")
+        self.id = id
+        
+        ref = self.collection.get("ref")
+        if ref is None: self.ref = []
+        else: self.ref = ref.split(" ")
+       
+        # Get patterns
+        for e in xpath(doc, "//irc:collection[@pattern]"):
+            if re.match(e.get("pattern"), self.collection.get("id")):
+                type = e.get("type")
+                if not type is None: self.type = type
+                
+
+    def toXML(self):
+        path = absolutePath("cols", self.id)
+        return E.documents(type=self.type, path=path, id=self.id)
+    
+class Topics:
+    def __init__(self, doc, id):
+        topics = findDefinition(doc, id, "topics-sets", "topics")[0]
+        self.path = absolutePath(topics.get("path"))
+        self.url = xpath1(topics, "irc:url")
+        self.id = id
+
+    def toXML(self):
+        return E.topics(path=self.path, id=self.id)
+    
+class Assessments:
+    def __init__(self, doc, id):
+        qrels = findDefinition(doc, id, "assessments", "qrels")[0]
+        if qrels is None:
+            raise Exception("Could not find assessments with id [%s]" % id)
+        self.path = absolutePath(qrels.get("path"))
+        self.url = xpath1(qrels, "irc:url")
+        self.id = id
+        self.type = qrels.get("type")
+        
+    def restrict(self, documents):
+        self.documents = documents
+        self.origPath = self.path
+        self.path = "%s.R.%s" % (self.path, documents.id)
+        self.id = "%s@%s" % (self.id, documents.id)
+        
+    def toXML(self):
+        return E.qrels(path=self.path, id=self.id)
+
+    def filter(self, inpath, outpath):
+        log("Filtering assessments for sub-collection %s" % self.documents.id)
+        pattern = xpath1(self.documents.collection, "irc:document").get("pattern")
+        m = re.compile(pattern)
+        
+        if self.type == "trec":
+            self.filter_trec(m, inpath, outpath)
+        else: 
+            raise Exception("Cannot filter assessments of type %s" % self.type)
+            
+    def filter_trec(self, m, inpath, outpath):
+        tmp = "%s.tmp" % outpath
+        
+        f = file(tmp, "w")
+        for line in file(inpath, "r"):
+            filename=line.split(" ")[2]
+            if m.match(filename): 
+                f.write(line)
+        f.close()
+        
+        shutil.move(tmp, outpath)
+        
+class Task():
+    """Object representing a set task
+    """
+    def __init__(self, doc, xml):
+        self.documents = Documents(doc, find(xml, "collection").text)
+        self.assessments = Assessments(doc, find(xml, "qrels").text)
+        self.topics = Topics(doc, find(xml, "qrels").text)
+    
+    def toXML(self):
+        root = E.task(
+            self.documents.toXML(),
+            self.topics.toXML(),
+            self.assessments.toXML()
+        )
+        return root
         
 
+    def restrict(self, doc, docsid):
+        if not docsid in self.documents.ref:
+            log("Available: %s" % self.documents.ref)
+            raise Exception("No [%s] sub-collection" % docsid)
+            
+        self.documents = Documents(doc, docsid)
+        if self.documents is None: raise Exception("Could not find documents [%s]" % docsid)
         
-# --- Get task
-def getTask(config, taskid):
-    
-    tasks = config.getAllTasks()
-    doc = config.doc
-
-    task = tasks.get(taskid, None)
-    if task is None:
-        raise Exception("No task with id %s" % taskid)
+        self.assessments.restrict(self.documents)
         
-        
-
-    # Now we process it
-    # print etree.tostring(task)
-
-    E = ElementMaker(namespace="http://ircollections.sourceforge.net", nsmap=ircnsNone)
-    
-    # Processing collection
-    collection = findDefinition(doc, find(task, "collection").text, "collections", "collection")
-    collection = collection[0]
-    if len(collection) > 1:
-        collection[0].set("aliased-from", collection[-1].get("id"))
-    
-    if collection.get("id") is None: collection.set("id", taskid)
-
-    # Processing patterns   
-    for e in xpath(doc, "//irc:collection[@pattern]"):
-        if re.match(e.get("pattern"), collection.get("id")):
-            type = e.get("type")
-            if not type is None: collection.set("type", type)
-
-    # Process qrels
-    qrels = find(task, "qrels")
-    if qrels.get("id") is None: qrels.set("id", taskid)
-    qrels.set("path", absolutePath(qrels.get("path")))
-
-    # topics
-    topics = findDefinition(doc, find(task, "topics").text, "topics-sets", "topics")[0]
-    topics.set("path", absolutePath(topics.get("path")))
-    
-
-        
-
-    
-    # Generating the final XML
-    log("Generating XML")    
-    root = E.task(
-        collection,
-        topics,
-        qrels,
-        id = taskid
-    )
-    #print(etree.tostring(root, pretty_print=True))
-    return root
-
-
 
 ############
 ### List ###
 ############
 
-def listAllTasks(config):
+def listAllTasks(tasks):
     """ List all tasks
     """
-    tasks = config.getAllTasks()
+    tasks = tasks.getAllTasks()
     maxLen = 0
     for e in tasks.keys():
         l = len(e)
@@ -193,51 +261,74 @@ def listAllTasks(config):
 ### Get ###
 ###########
 
-def printTask(doc, taskid):
-    task=getTask(doc, taskid)
-    docs = xpath1(task, "/irc:task/irc:collection")
-    docs.set("path", absolutePath("cols/%s" % docs.get("id")))
-    print(etree.tostring(task, pretty_print=True))
+def printTask(tasks, argv):
+    r = process(argv)
+    taskid = r["taskid"]
+    task= tasks.getTask(taskid)
+    if r["restrict"]: task.restrict(tasks.doc, r["restrict"])
+    print(etree.tostring(task.toXML(), pretty_print=True))
 
 
 ###############
 ### Prepare ###
 ###############
 
-def prepareTask(config, taskid):
-    doc = config.doc
-    task = getTask(config, taskid)
+def prepareTask(tasks, argv):
+    r = process(argv)
+    taskid = r["taskid"]
+    task= tasks.getTask(taskid)
+    if r["restrict"]: task.restrict(tasks.doc, r["restrict"])
+    print(etree.tostring(task.toXML(), pretty_print=True))
     
-    # --- Make paths absolute
-#    print etree.tostring(task)
-
-    print "Generating the collection file"
-    docs = xpath1(task, "/irc:task/irc:collection")
+    doc = tasks.doc
     
-    basepath = config.getCollectionBasePath(docs.get("id"))
-    input = file(os.path.join(absolutePath("docs"), "%s.relfiles" % docs.get("id")),"r")
-    out = file(os.path.join(absolutePath("cols"), "%s" % docs.get("id")),"w")
-    for line in input.readlines():
-        out.write(os.path.join(basepath, line))
-    out.close()
-    input.close()
+    # --- Process documents
     
-    # --- Get qrels and topics
-    for info in [ ["irc:qrels", "qrels", ircqrels], ["irc:topics", "topics", irctopics] ]:
-        path = task.xpath("%s/@path" % info[0], namespaces = ircns)[0]
+    documents = task.documents    
+    basepath = tasks.getCollectionBasePath(documents.id)
+    docfile = os.path.join(absolutePath("cols"), "%s" % documents.id)
+    if not os.path.isfile(docfile):
+        input = file(os.path.join(absolutePath("docs"), "%s.relfiles" % documents.id),"r")
+        out = file(docfile,"w")
+        log("Generating the collection file [%s]" % docfile)
+        for line in input.readlines():
+            out.write(os.path.join(basepath, line))
+        out.close()
+        input.close()
+    
+    # --- Get topics
+    
+    for k,info in { "topics": task.topics, "qrels": task.assessments }.iteritems():
+        type = info.url.get("type")
+        url = info.url.text
+        f = downloadSchemes.get(type, None)
+        if f is None:
+            raise Exception("Cannot handle [%s]" % type)
+            
+        if hasattr(info, "origPath") and not info.origPath is None: path = absolutePath(info.origPath)
+        else: path = absolutePath(info.path)
+            
         if not os.path.exists(path):
-            dir=os.path.dirname(path)
-            log("Creating destination directory %s" % dir)
-            if not os.path.isdir(dir):
-                os.makedirs(dir)
+            log("Downloading %s %s into [%s]..." % (k, info.id, path))
+            createBaseDir(path)
+            f[0](path, url, f[1:])
+            
+        # Restrict if needed
+        if hasattr(info, "origPath"):
+            path2 = absolutePath(info.path)
+            if not os.path.exists(path2):
+                createBaseDir(path2)
+                info.filter(path, path2)
 
-            id = task.xpath("%s/@id" % info[0], namespaces = ircns)[0]
-            log("Downloading %s %s..." % (info[1], id))
-            rsrc = info[2][id]
-            rsrc[0](path, rsrc)
-        
+    
+    
+def createBaseDir(path):
+    dir=os.path.dirname(path)
+    if not os.path.isdir(dir): 
+        log("Creating directory %s" % dir)
+        os.makedirs(dir)
 
-def qrelsTRECGZ(path, info):
+def getTarGZFile(path, url, args):
     """Download QRELS as a set of gzipped files in a tar.gz archive
     """
     tmpdir=None
@@ -245,13 +336,13 @@ def qrelsTRECGZ(path, info):
         # Temporary directory
         tmpdir=tempfile.mkdtemp()
         tmpfile="%s/file.dl" % tmpdir
-        urllib.urlretrieve(info[1], tmpfile)
+        urllib.urlretrieve(url, tmpfile)
         d= "%s/all" % tmpdir
         tarfile.open(tmpfile).extractall(path="%s/all" % tmpdir)
         f_out = open("%s/qrels" % tmpdir, 'w')
         for aPath in (os.path.join(d,f) for f in os.listdir(d)):
-            log("Uncompressing %s" % path)
-            if info[2]: gzf = gzip.open(aPath)
+            log("Uncompressing %s" % aPath)
+            if args[0]: gzf = gzip.open(aPath)
             else: gzf = file(aPath)
             f_out.writelines(gzf)
             gzf.close()
@@ -264,11 +355,11 @@ def qrelsTRECGZ(path, info):
         if not tmpdir is None:
             rm_rf(tmpdir)
 
-def getGZFile(path, info):
+def getGZFile(path, url, args):
     """Get a GZIPPED file over the network and uncompress it
     """
     gzfile=tempfile.NamedTemporaryFile(delete=True)
-    urllib.urlretrieve(info[1], gzfile.name)
+    urllib.urlretrieve(url, gzfile.name)
 
     # Uncompress
     file=tempfile.NamedTemporaryFile(delete=True)
@@ -285,31 +376,33 @@ def getGZFile(path, info):
     try: gzfile.close()
     except: pass
 
-ircqrels = {
-    "trec.1.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz", True],
-    "trec.2.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz"],
-    "trec.3.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz"],
-    "trec.4.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz"],
-    "trec.5.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz"],
-    "trec.6.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz"],
-    "trec.7.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz", True],
-    "trec.8.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz", False],
-}
-
-irctopics = {
-    "trec.1.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.51-100.gz"],
-    "trec.2.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.101-150.gz"],
-    "trec.3.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.151-200.gz"],
-    "trec.4.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.201-250.gz"],
-    "trec.5.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.251-300.gz"],
-    "trec.6.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.301-350.gz"],
-    "trec.7.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.351-400.gz"],
-    "trec.8.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.401-450.gz"],
+# List of download schemes  
+downloadSchemes = {
+    "tar.gz#gz" : [getTarGZFile, True],
+    "tar.gz" : [getTarGZFile, False],
+    "gz" : [getGZFile]
 }
 
 ############
 ### Main ###
 ############
+
+def process(argv):
+    try:                  
+        r = { "restrict": None, "taskid": None }
+        
+        opts, args = getopt.getopt(argv, "", ["restrict="])
+
+        for opt,arg in opts:
+            if opt in ("--restrict"):
+                r["restrict"] = arg
+        
+        r["taskid"] = args[0]        
+        return r
+    except getopt.GetoptError:           
+        usage()                
+        sys.exit(2)
+
 
 def usage():
     def command(cmd, desc):
@@ -346,15 +439,17 @@ def main(dir, argv):
     if len(args) == 0:
         usage()
     else:
-            config = Configuration(dir)
+            tasks = Tasks(dir)
             
             command = args[0]
-            if command == "list":  listAllTasks(config)
-            elif command == "get": printTask(config, args[1])
+            if command == "list":  
+                listAllTasks(tasks)
+            elif command == "get": 
+                printTask(tasks, args[1:])
             elif command == "evaluate":
                 raise Exception("Command not yet implemented")
             elif command == "prepare":
-                prepareTask(config, args[1])
+                prepareTask(tasks, args[1:])
             else:
                 print "Command not recognised (%s)" % command
                 usage()
