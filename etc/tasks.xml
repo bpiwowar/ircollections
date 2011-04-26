@@ -48,14 +48,16 @@ irctopics = {
   	<collection pattern="trec.*" type="trec"/>
   
     <!-- Sub-collections used in TREC -->
-    <collection id="trec.ap88" description="Associated Press (1988)" path="cols/ap88.col.files"/>
+    <collection id="trec.ap88" description="Associated Press (1988)" path="cols/ap88.col.files">
+    	<document pattern="^AP88.*$"/>
+    </collection>
     
     <collection id="trec.ap8889" description="Associated Press (1988-89)" path="cols/ap8889.col.files">
-    	<document pattern="^AP8.*$"/>
+    	<document pattern="^AP8[89].*$"/>
     </collection>
     
     <collection id="trec.ap8890" description="Associated Press (1988-90)">
-        <document pattern="^AP8.*$"/>
+        <document pattern="^AP(8[89]|90).*$"/>
     </collection>
     
     <collection id="trec.clueweb09b" type="warc" description="ClueWeb09 Subset B"/>
@@ -67,33 +69,36 @@ irctopics = {
     <collection id="trec.fr8894"/>
     <collection id="trec.fr94"/>
     <collection id="trec.ft1"/>
-    <collection id="trec.la8990">cols/la8990.col.files</collection>
-    <collection id="trec.sjm1">cols/sjm1.col.files</collection>
-    <collection id="trec.usp93">cols/usp93.col.files</collection>
-    <collection id="trec.wsj8792">cols/wsj8792.col.files</collection>
-    <collection id="trec.wsj9092">cols/wsj9092.col.files</collection>
-    <collection id="trec.ziff12">cols/ziff12.col.files</collection>
-    <collection id="trec.ziff2">cols/ziff2.col.files</collection>
-    <collection id="trec.ziff23">cols/ziff23.col.files</collection>
-    <collection id="trec.wt10g" type="trec.web">cols/wt10g.col.files</collection>
+    <collection id="trec.la8990"/>
+    <collection id="trec.sjm1"/>
+    <collection id="trec.usp93"/>
+    <collection id="trec.wsj8792"/>
+    <collection id="trec.wsj9092"/>
+    <collection id="trec.ziff12"/>
+    <collection id="trec.ziff2"/>
+    <collection id="trec.ziff23"/>
+    <collection id="trec.wt10g" type="trec.web"/>
 
 
-    <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12" type="trec"/>
+    <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12"/>
     <collection id="trec.2.adhoc" alias="trec.1.adhoc"/>
     <collection id="trec.3.adhoc" alias="trec.1.adhoc"/>
     <collection id="trec.4.adhoc" ref="ap8890 fr88 sjm1 usp93 wsj9092 ziff23" path="cols/trec4.col.files"/>
     <collection id="trec.5.adhoc" ref="ap88 cr1 fr8894 ft1 wsj9092 ziff2" path="cols/trec5.col.files"/>
-    <collection id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990">cols/trec6.col.files</collection>
-    <collection id="trec.7.adhoc" ref="fbis1 fr94 ft1 la8990" path="cols/trec7.col.files"/>
+    <collection id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990"/>
+    <collection id="trec.7.adhoc" ref="fbis1 fr94 ft1 la8990"/>
     <collection id="trec.8.adhoc" alias="trec.7.adhoc"/>
 
-    <collection id="trec.dotgov" path="cols/dotgov.col.files"></collection>
-    <collection id="trec.dotgov2" path="cols/dotgov2.col.files"></collection>
-    <collection id="trec.aquaint" path="cols/aquaint.col.files"></collection>
+    <collection id="trec.dotgov"/>
+    <collection id="trec.dotgov2"/>
+    <collection id="trec.aquaint"/>
   </collections>
 
   <topics-sets>
-    <topics id="trec.1.adhoc" path="trec/trec1/adhoc/trec1.topics.51-100" type="trec">
+   	<!-- Global definitions: trec collections are of type trec -->
+  	<topics pattern="trec.*" type="trec"/>
+
+    <topics id="trec.1.adhoc" path="trec/trec1/adhoc/trec1.topics.51-100">
       <property parts="desc"/>
       <url type="gz">http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
     </topics>
@@ -130,6 +135,9 @@ irctopics = {
   </topics-sets>
 
   <assessments>
+	<!-- Global definitions: trec collections are of type trec -->
+  	<qrels pattern="trec.*" type="trec"/>
+
   	<qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
   		<url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url>
   	</qrels>
@@ -150,7 +158,7 @@ irctopics = {
     <task description="Ad-hoc task of trec2" name="adhoc">
       <collection>trec.2.adhoc</collection>
       <topics>trec.2.adhoc</topics>
-      <qrels path="trec/trec2/adhoc/trec2.qrels.101-150.all" id="trec.2.adhoc"/>
+      <qrels>trec.2.adhoc</qrels>
     </task>
   </task>
 
@@ -160,7 +168,7 @@ irctopics = {
     <task description="Ad-hoc task of trec3" name="adhoc">
       <collection>trec.3.adhoc</collection>
       <topics>trec.3.adhoc</topics>
-      <qrels path="trec/trec3/adhoc/trec3.qrels.151-200.all"/>
+      <qrels>trec.3.adhoc</qrels>
     </task>
   </task>
 

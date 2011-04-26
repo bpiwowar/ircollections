@@ -21,6 +21,7 @@ import tarfile
 import gzip
 import shutil
 import re
+import subprocess
 
 ########################
 ### Global variables ###
@@ -66,8 +67,8 @@ def find(task, name):
 def findDefinition(doc, id, parentType, type):
     """Find a definition for a given id
     """
-    xpath = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
-    el = doc.xpath(xpath, namespaces=ircns)
+    xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
+    el = doc.xpath(xpathStr, namespaces=ircns)
     if len(el) != 1: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
     el = el[0]
     alias = el.get("alias")
@@ -75,6 +76,14 @@ def findDefinition(doc, id, parentType, type):
         a = findDefinition(doc, alias, parentType, type)
         a.append(el)
         return a
+        
+    # Look at patterns
+    for e in xpath(doc, "//irc:%s/irc:%s[@pattern]" % (parentType, type)):
+        if re.match(e.get("pattern"), el.get("id")):
+            type = e.get("type")
+            if (not type is None) and el.get("type") is None: 
+                el.set("type", type)
+
     return [el]
 
 def absolutePath(*args):
@@ -150,12 +159,6 @@ class Documents:
         if ref is None: self.ref = []
         else: self.ref = ref.split(" ")
        
-        # Get patterns
-        for e in xpath(doc, "//irc:collection[@pattern]"):
-            if re.match(e.get("pattern"), self.collection.get("id")):
-                type = e.get("type")
-                if not type is None: self.type = type
-                
 
     def toXML(self):
         path = absolutePath("cols", self.id)
@@ -172,6 +175,8 @@ class Topics:
         return E.topics(path=self.path, id=self.id)
     
 class Assessments:
+    """This represents Assessments
+    """
     def __init__(self, doc, id):
         qrels = findDefinition(doc, id, "assessments", "qrels")[0]
         if qrels is None:
@@ -269,6 +274,31 @@ def printTask(tasks, argv):
     print(etree.tostring(task.toXML(), pretty_print=True))
 
 
+################
+### Evaluate ###
+################
+
+def find_bin(cmd):
+    # Check the bin directory
+    path=join(ircdir, "bin", cmd)
+    if os.path.exists(path): return path
+    
+    # Otherwise, we assume it is in the PATH
+    return cmd
+    
+
+def evaluate(tasks, argv):
+    if len(argv) != 3: raise Exception("Expected three arguments (type, qrels, file)")
+    qtype=argv.pop(0)
+    qrels=argv.pop(0)
+    runfile=argv.pop(0)
+    
+    
+    if qtype == "trec":
+        trec_eval = find_bin("trec_eval")
+        subprocess.call([trec_eval, qrels, runfile], stdout=sys.stdout, stderr=sys.stderr)
+    else: raise Exception("Cannot evaluate qrels with type %s", qtype)
+    
 ###############
 ### Prepare ###
 ###############
@@ -447,7 +477,7 @@ def main(dir, argv):
             elif command == "get": 
                 printTask(tasks, args[1:])
             elif command == "evaluate":
-                raise Exception("Command not yet implemented")
+                evaluate(tasks, args[1:])
             elif command == "prepare":
                 prepareTask(tasks, args[1:])
             else:

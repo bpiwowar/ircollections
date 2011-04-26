@@ -42,9 +42,9 @@ var ircollections = {
         the list of files, the topics, and the qrels</p>
     </>,
     
-    input: <inputs xmlns:irc={ircns("1.0")}>
+    input: <inputs>
                <input id="id" type="xs:string" help="The name of the IR task (e.g. trec.7/adhoc)"/>               
-               <input id="topics" type="irc:topics" help="Alternate topics" optional="true"/>
+               <input id="restrict" type="xs:string" help="Restrict to a subcollection" optional="true"/>
 			</inputs>,
 
     output: <>
@@ -57,23 +57,23 @@ var ircollections = {
 		// Running
 		this.run = function() { 
 			var inputs = this.inputs;
-			xpm.log("IR task is [%s]", inputs.id);
-			
-            // run now (lightweight process)
-            if (inputs.id == undefined) 
-            	throw "Undefined id";
-            
-            xpm.log("Retrieving task with id %s (%s)", inputs.id, irc_bin.toString());
-            
-			xpm.log(irc_bin.toString());
-            xpm.log(inputs.id);
+			var task_id = inputs.id.@xp::value;
+			xpm.log("IR task is [%s]", task_id);
 
-			output = xpm.evaluate([irc_bin.toString(), "get", inputs.id]);
+			args= [irc_bin.toString(), "get"];
+			if (inputs.restrict) 
+				args = args.concat("--restrict", inputs.restrict.@xp::value);
+                        
+            // Run ircollections 
+            var command = args.concat(task_id);
+			output = xpm.evaluate(command);
             
             
             // Get the output
             if (output[0] != 0) 
-            	throw "Error while running get-task: error code is " + output[0] + ", command was " + [irc_bin.toString(), "get", inputs.id];
+            	throw "Error while running get-task: error code is " 
+            		+ output[0] + ", command was [" + command.toString() + "]";
+            
             
 			r = new XML(output[1]);
             
@@ -82,29 +82,22 @@ var ircollections = {
 			 * <task xmlns="http://ircollections.sf.net" id="trec.6/adhoc">
 			 *  <documents id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990" path="cols/trec6.col.files"/>
 			 *  <topics id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.topics.301-350"/>
-			 *  <qrels id=""><file>trec/trec6/adhoc/trec6.qrels.301-350.all<file></qrels>
+			 *  <qrels id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.qrels.301-350.all"/>
 			 * </task>
 			 */
-			
-			// Redefine the topics
-			if (inputs.topics != undefined)  {
-				// Simply copy the definition
-                r.topics = inputs.topics;
-            }
                         
-            // Set identifiers for experimaestro
-            r.irc::topics.@xpmns::id = "topics";
-            r.irc::topics.@xpmns::value = r.topics.id;
+            // --- Set identifiers for experimaestro
+            var topics = r.irc::topics;
+            topics.@xp::id = "topics";
+            topics.@xp::value = topics.@id;
             
-            r.irc::collection.@xpmns::id = "documents";
-            r.irc::collection.* +=  <param xmlns={xpm.ns()} id="id">{r.@id}</param>;;
+            var docs = r.irc::documents;
+            docs.@xp::id = "documents";
+            docs.@xp::value = docs.@id;
             
-			r.irc::qrels.@xpmns::id = "qrels";
-			r.qrels.@xpmns::value = "";
+			r.irc::qrels.@xp::id = "qrels";
+			r.irc::qrels.@xp::value = r.irc::qrels.@id;
 			
-			r.* += <param xmlns={xpm.ns()} id="task">{r.@id}</param>;
-			
-
 			return <outputs>
 				{r}
 			</outputs>;
@@ -115,3 +108,44 @@ var ircollections = {
 };
 
 xpm.addTaskFactory(ircollections);
+
+
+
+/**
+ * Evaluate a run
+ */
+var task_evaluate = {
+	id: xpm.qName(ircns(), "evaluate"),
+	version: "1.0",
+
+	description: <><p>Evaluate a run</p></>,
+
+	input: <inputs xmlns:irc={irc}>
+		<input id="run" type="irc:run" help="The run to evaluate"/>
+		<input id="qrels" type="irc:qrels" help="The relevance assessments"/>
+		<input id="out" type="xp:file"/>
+	</inputs>,
+	
+	output: <></>,
+	
+	run: function(o) {
+	
+		var command = [irc_bin.toString(), "evaluate",
+			o.qrels.@type,
+			o.qrels.path,
+			o.run.path,
+			">", 
+			o.out.@xp::value];
+		
+		// Run the evaluation - but wait first for the run resource to be generated
+		xpm.addCommandLineJob(out, command, [ run.@xp::resource, "READ_ACCESS" ]);
+		
+		return <outputs>
+			<evaluation xmlns={irc.uri}>
+			</evaluation>
+		</outputs>;
+	}
+};
+
+
+xpm.addTaskFactory(task_evaluate);

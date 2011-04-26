@@ -1,4 +1,4 @@
-default namespace = "http://www.example.com/address"
+default namespace = "http://ircollections.sourceforge.net"
 
 element task {
 
@@ -6,7 +6,7 @@ element task {
   element documents { 
      ## The ID of this document collection
      attribute id { text },
-     attribute aliased-from { text },
+     attribute aliased-from { text }?,
      attribute type { "trec" | "inex" },
      attribute path { text }
   },
@@ -18,10 +18,11 @@ element task {
      attribute path { text }
   },
  
- ## Describes the qrels
+ ## Describes the relevance asssessments
  element qrels { 
      attribute id { text },
      attribute type { "trec" | "trec.subtopic" | "inex" | "inex.trec" },
      attribute path { text }
  }
+ 
 }
