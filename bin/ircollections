@@ -64,12 +64,16 @@ def find(task, name):
     return l[0]
 
 
-def findDefinition(doc, id, parentType, type):
+def findDefinition(definitions, id, parentType, type):
     """Find a definition for a given id
     """
     xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
-    el = doc.xpath(xpathStr, namespaces=ircns)
-    if len(el) != 1: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
+    el = []
+    for doc in definitions:
+        el = el + doc.xpath(xpathStr, namespaces=ircns)
+        
+    if len(el) == 0: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
+    if len(el) > 1: raise Exception("Found too many a %s/%s with id %s [%d]" % (parentType, type, id, len(el)))
     el = el[0]
     alias = el.get("alias")
     if not alias is None:
@@ -79,11 +83,19 @@ def findDefinition(doc, id, parentType, type):
         
     # Look at patterns
     patternPath="//irc:%s/irc:%s[@pattern]" % (parentType, type)
-    for e in xpath(doc, patternPath):
-        if re.match(e.get("pattern"), el.get("id")):
-            type = e.get("type")
-            if (not type is None) and el.get("type") is None: 
-                el.set("type", type)
+    for doc in definitions:
+        for e in xpath(doc, patternPath):
+            if re.match(e.get("pattern"), el.get("id")):
+                # If we have a pattern match, we merge the elements
+                # (1) Attributes [but pattern]
+                for k,v in e.attrib.iteritems():
+                    if not k == "pattern":
+                        el.set(k, v)
+
+                # (2) Elements
+                for l in e: el.append(l)
+
+                    #print(etree.tostring(el, pretty_print=True))
 
     return [el]
 
@@ -105,31 +117,23 @@ def xpath1(node, path):
 class Tasks():
     def __init__(self, dir):
         tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
-        self.colls = etree.parse(os.path.join(dir,os.path.join("etc", "collections.xml")))
-        self.doc = etree.parse(tasksfile)
+
+        self.definitions = [
+            etree.parse(tasksfile),
+            etree.parse(os.path.join(dir,os.path.join("etc", "collections.xml")))]
 
         log("Using the task file '%s'" % tasksfile)
         
         # Pre-compute the list of available tasks 
         # and get their corresponding XML node
         self.tasks = {}
-        for e in xpath(self.doc, '//irc:task[not(@abstract)]'):
-            name = None
-            for p in xpath(e, "ancestor-or-self::irc:task"):
-                if name is None: name = p.get("name")
-                else: name = "%s/%s" % (name, p.get("name"))
-            self.tasks[name] =  e
-        
-        
-    def getCollectionBasePath(self, id):
-        """Get the documents base path in order to create an absolute path to document files
-        """
-        priority = 0
-        path = None
-        for c in xpath(self.colls, "/collections/basepath"):
-            if c.get("pattern") is None:
-                if priority <= 0: path=c.text
-        return path
+        for doc in self.definitions:
+            for e in xpath(doc, '//irc:task[not(@abstract)]'):
+                name = None
+                for p in xpath(e, "ancestor-or-self::irc:task"):
+                    if name is None: name = p.get("name")
+                    else: name = "%s/%s" % (name, p.get("name"))
+                self.tasks[name] =  e
         
     def getAllTasks(self):
         """ Get the list of all non abstract tasks
@@ -137,7 +141,7 @@ class Tasks():
         return self.tasks
         
     def getTask(self, id):
-        return Task(self.doc, self.tasks.get(id))
+        return Task(self.definitions, self.tasks.get(id))
 
 
 class Documents:
@@ -159,7 +163,11 @@ class Documents:
         ref = self.collection.get("ref")
         if ref is None: self.ref = []
         else: self.ref = ref.split(" ")
-       
+
+        self.basepath = self.collection.get("basepath")
+
+    def getBasePath(self):
+        return self.basepath
 
     def toXML(self):
         path = absolutePath("cols", self.id)
@@ -312,12 +320,12 @@ def prepareTask(tasks, argv):
     if r["restrict"]: task.restrict(tasks.doc, r["restrict"])
     print(etree.tostring(task.toXML(), pretty_print=True))
     
-    doc = tasks.doc
+    definitions = tasks.definitions
     
     # --- Process documents
     
     documents = task.documents    
-    basepath = tasks.getCollectionBasePath(documents.id)
+    basepath = documents.getBasePath()
     docfile = os.path.join(absolutePath("cols"), "%s" % documents.id)
     if not os.path.isfile(docfile):
         input = file(os.path.join(absolutePath("docs"), "%s.relfiles" % documents.id),"r")
