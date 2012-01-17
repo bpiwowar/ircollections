@@ -19,15 +19,6 @@
 
 To be set in XML and not in the python script
 
-ircqrels = {
-    "trec.2.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz"],
-    "trec.3.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz"],
-    "trec.4.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz"],
-    "trec.5.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz"],
-    "trec.6.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz"],
-    "trec.7.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz", True],
-    "trec.8.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz", False],
-}
 
 irctopics = {
     "trec.1.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.51-100.gz"],
@@ -142,12 +133,29 @@ irctopics = {
   </topics-sets>
 
   <assessments>
+    <!--
+ircqrels = {
+    "trec.2.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz"],
+    "trec.3.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz"],
+    "trec.4.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz"],
+    "trec.5.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz"],
+    "trec.6.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz"],
+    "trec.7.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz", True],
+    "trec.8.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz", False],
+}
+
+    -->
 	<!-- Global definitions: trec collections are of type trec -->
   	<qrels pattern="trec.*" type="trec"/>
 
   	<qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
   		<url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url>
   	</qrels>
+
+  	<qrels id="trec.2.adhoc" path="trec/trec2/adhoc/qrels.101-150" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz</url>
+  	</qrels>
+
   </assessments>
 
   <!-- trec1 -->

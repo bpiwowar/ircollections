@@ -75,9 +75,11 @@ def findDefinition(definitions, id, parentType, type):
     if len(el) == 0: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
     if len(el) > 1: raise Exception("Found too many a %s/%s with id %s [%d]" % (parentType, type, id, len(el)))
     el = el[0]
+
+    # Look for an alias
     alias = el.get("alias")
     if not alias is None:
-        a = findDefinition(doc, alias, parentType, type)
+        a = findDefinition(definitions, alias, parentType, type)
         a.append(el)
         return a
         
@@ -104,9 +106,11 @@ def absolutePath(*args):
     return os.path.join(ircdir, os.path.join(*args))
 
 def xpath(node, path):
+    """Run XPath query with predefined irc namespace"""
     return node.xpath(path, namespaces = ircns)
 
 def xpath1(node, path):
+    """Get the first item returned by an XPath"""
     return node.xpath(path, namespaces = ircns)[0]
 
 
@@ -280,7 +284,7 @@ def printTask(tasks, argv):
     r = process(argv)
     taskid = r["taskid"]
     task= tasks.getTask(taskid)
-    if r["restrict"]: task.restrict(tasks.doc, r["restrict"])
+    if r["restrict"]: task.restrict(tasks.definitions, r["restrict"])
     print(etree.tostring(task.toXML(), pretty_print=True))
 
 
@@ -317,7 +321,7 @@ def prepareTask(tasks, argv):
     r = process(argv)
     taskid = r["taskid"]
     task= tasks.getTask(taskid)
-    if r["restrict"]: task.restrict(tasks.doc, r["restrict"])
+    if r["restrict"]: task.restrict(tasks.definitions, r["restrict"])
     print(etree.tostring(task.toXML(), pretty_print=True))
     
     definitions = tasks.definitions
