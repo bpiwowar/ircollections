@@ -180,13 +180,13 @@ class Documents:
         return self.basepath
 
     def toXML(self):
-        path = absolutePath("cols", self.id)
+        path = absolutePath("data", "irc.cols", self.id)
         return E.documents(type=self.type, path=path, id=self.id)
     
 class Topics:
     def __init__(self, doc, id):
         topics = findDefinition(doc, id, "topics-sets", "topics")[0]
-        self.path = absolutePath(topics.get("path"))
+        self.path = absolutePath("data", topics.get("path"))
         self.url = xpath1(topics, "irc:url")
         self.id = id
         self.type = topics.get("type")
@@ -201,7 +201,7 @@ class Assessments:
         qrels = findDefinition(doc, id, "assessments", "qrels")[0]
         if qrels is None:
             raise Exception("Could not find assessments with id [%s]" % id)
-        self.path = absolutePath(qrels.get("path"))
+        self.path = absolutePath("data", qrels.get("path"))
         self.url = xpath1(qrels, "irc:url")
         self.id = id
         self.type = qrels.get("type")
@@ -336,7 +336,7 @@ def prepareTask(tasks, argv):
     
     documents = task.documents    
     basepath = documents.getBasePath()
-    docfile = os.path.join(absolutePath("cols"), "%s" % documents.id)
+    docfile = os.path.join(absolutePath("irc.cols"), "%s" % documents.id)
     if not os.path.isfile(docfile):
         input = file(documents.getRelFiles(),"r")
         
