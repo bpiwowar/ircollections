@@ -89,13 +89,13 @@ def findDefinition(definitions, id, parentType, type):
                 # If we have a pattern match, we merge the elements
                 # (1) Attributes [but pattern]
                 for k,v in e.attrib.iteritems():
-                    if not k == "pattern":
+                    if not (k == "pattern"):
                         el.set(k, v)
 
                 # (2) Elements
                 for l in e: el.append(l)
 
-                    #print(etree.tostring(el, pretty_print=True))
+                    #    print(etree.tostring(el, pretty_print=True))
 
     return [el]
 
