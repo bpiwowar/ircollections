@@ -2,6 +2,12 @@
 
 <!--
 
+	This file contains the definitions of IR tasks and should not be modified: 
+	Use collections.xml to set local settings
+
+
+
+
 	Properties for the topics:
 
 * comma-separated-phrases
