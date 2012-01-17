@@ -13,8 +13,12 @@ element task {
 
   ## Describes the topics  
   element topics { 
+  	 # The unique topic identifier
      attribute id { text },
+     # The topic type
      attribute type { "trec" | "inex" },
+     # The path to the file (or directory, depending on the format)
+     # containing the topics
      attribute path { text }
   },
  

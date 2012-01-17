@@ -78,7 +78,8 @@ def findDefinition(doc, id, parentType, type):
         return a
         
     # Look at patterns
-    for e in xpath(doc, "//irc:%s/irc:%s[@pattern]" % (parentType, type)):
+    patternPath="//irc:%s/irc:%s[@pattern]" % (parentType, type)
+    for e in xpath(doc, patternPath):
         if re.match(e.get("pattern"), el.get("id")):
             type = e.get("type")
             if (not type is None) and el.get("type") is None: 
@@ -170,9 +171,10 @@ class Topics:
         self.path = absolutePath(topics.get("path"))
         self.url = xpath1(topics, "irc:url")
         self.id = id
+        self.type = topics.get("type")
 
     def toXML(self):
-        return E.topics(path=self.path, id=self.id)
+        return E.topics(path=self.path, id=self.id, type=self.type)
     
 class Assessments:
     """This represents Assessments
@@ -193,7 +195,7 @@ class Assessments:
         self.id = "%s@%s" % (self.id, documents.id)
         
     def toXML(self):
-        return E.qrels(path=self.path, id=self.id)
+        return E.qrels(path=self.path, id=self.id, type=self.type)
 
     def filter(self, inpath, outpath):
         log("Filtering assessments for sub-collection %s" % self.documents.id)
