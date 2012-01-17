@@ -143,7 +143,7 @@ irctopics = {
 
   <assessments>
 	<!-- Global definitions: trec collections are of type trec -->
-  	<qrels pattern="trec.*" type="trec"/>
+  	<qrels pattern="trec\..*\.adhoc" type="trec.adhoc"/>
 
   	<qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
   		<url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url>
