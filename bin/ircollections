@@ -156,7 +156,8 @@ class Documents:
         
         if len(collection) == 0:
             raise Exception("Could not find collection with id [%s]" % id)
-        
+
+        self.aliased_from = None
         if len(collection) > 1:
             self.aliased_from = collection[-1].get("id")
         
@@ -169,6 +170,11 @@ class Documents:
         else: self.ref = ref.split(" ")
 
         self.basepath = self.collection.get("basepath")
+
+    def getRelFiles(self):
+        if self.aliased_from is None:
+            return os.path.join(absolutePath("docs"), "%s.relfiles" % self.id)
+        self.aliased_from.getRelFiles()
 
     def getBasePath(self):
         return self.basepath
@@ -332,7 +338,8 @@ def prepareTask(tasks, argv):
     basepath = documents.getBasePath()
     docfile = os.path.join(absolutePath("cols"), "%s" % documents.id)
     if not os.path.isfile(docfile):
-        input = file(os.path.join(absolutePath("docs"), "%s.relfiles" % documents.id),"r")
+        input = file(documents.getRelFiles(),"r")
+        
         out = file(docfile,"w")
         log("Generating the collection file [%s]" % docfile)
         for line in input.readlines():

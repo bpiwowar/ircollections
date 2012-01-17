@@ -15,24 +15,6 @@
 -->
 
 
-<!--
-
-To be set in XML and not in the python script
-
-
-irctopics = {
-    "trec.1.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.51-100.gz"],
-    "trec.2.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.101-150.gz"],
-    "trec.3.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.151-200.gz"],
-    "trec.4.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.201-250.gz"],
-    "trec.5.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.251-300.gz"],
-    "trec.6.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.301-350.gz"],
-    "trec.7.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.351-400.gz"],
-    "trec.8.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.401-450.gz"],
-}
-
--->
-
   <!--
   
 
@@ -79,13 +61,10 @@ irctopics = {
 
 
     <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12"/>
-    <collection id="trec.2.adhoc" alias="trec.1.adhoc"/>
-    <collection id="trec.3.adhoc" alias="trec.1.adhoc"/>
     <collection id="trec.4.adhoc" ref="ap8890 fr88 sjm1 usp93 wsj9092 ziff23" path="cols/trec4.col.files"/>
     <collection id="trec.5.adhoc" ref="ap88 cr1 fr8894 ft1 wsj9092 ziff2" path="cols/trec5.col.files"/>
     <collection id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990"/>
     <collection id="trec.7.adhoc" ref="fbis1 fr94 ft1 la8990"/>
-    <collection id="trec.8.adhoc" alias="trec.7.adhoc"/>
 
     <collection id="trec.dotgov"/>
     <collection id="trec.dotgov2"/>
@@ -96,17 +75,54 @@ irctopics = {
    	<!-- Global definitions: trec collections are of type trec -->
   	<topics pattern="trec.*" type="trec"/>
 
+<!--
+
+
+
+irctopics = {
+    "trec.1.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.51-100.gz"],
+    "trec.2.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.101-150.gz"],
+    "trec.3.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.151-200.gz"],
+    "trec.4.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.201-250.gz"],
+    "trec.5.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.251-300.gz"],
+    "trec.6.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.301-350.gz"],
+    "trec.7.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.351-400.gz"],
+    "trec.8.adhoc": [getGZFile, "http://trec.nist.gov/data/topics_eng/topics.401-450.gz"],
+}
+
+-->
+
     <topics id="trec.1.adhoc" path="trec/trec1/adhoc/trec1.topics.51-100">
       <property parts="desc"/>
       <url type="gz">http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
     </topics>
-    <topics id="trec.2.adhoc" path="trec/trec2/adhoc/trec2.topics.101-150"/>
-    <topics id="trec.3.adhoc" path="trec/trec3/adhoc/trec3.topics.151-200"/>
-    <topics id="trec.4.adhoc" path="trec/trec4/adhoc/trec4.topics.201-250"/>
-    <topics id="trec.5.adhoc" path="trec/trec5/adhoc/trec5.topics.251-300"/>
-    <topics id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.topics.301-350"/>
-    <topics id="trec.7.adhoc" path="trec/trec7/adhoc/trec7.topics.351-400"/>
+
+    <topics id="trec.2.adhoc" path="trec/trec2/adhoc/trec2.topics.101-150">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.101-150.gz</url>
+    </topics>
+
+    <topics id="trec.3.adhoc" path="trec/trec3/adhoc/trec3.topics.151-200">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.151-200.gz</url>
+    </topics>
+
+    <topics id="trec.4.adhoc" path="trec/trec4/adhoc/trec4.topics.201-250">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.201-250.gz</url>
+    </topics>
+
+    <topics id="trec.5.adhoc" path="trec/trec5/adhoc/trec5.topics.251-300">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.251-300.gz</url>
+    </topics>
+
+    <topics id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.topics.301-350">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.301-350.gz</url>
+    </topics>
+
+    <topics id="trec.7.adhoc" path="trec/trec7/adhoc/trec7.topics.351-400">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.351-400.gz</url>
+    </topics>
+
     <topics id="trec.8.adhoc" path="trec/trec8/adhoc/trec8.topics.401-450">
+      <url type="gz">http://trec.nist.gov/data/topics_eng/topics.401-450.gz</url>
     	<property name="comma-separated-phrases"/>
     </topics>
 
@@ -156,6 +172,30 @@ ircqrels = {
 	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz</url>
   	</qrels>
 
+  	<qrels id="trec.3.adhoc" path="trec/trec3/adhoc/qrels.151-00" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz</url>
+  	</qrels>
+
+  	<qrels id="trec.4.adhoc" path="trec/trec2/adhoc/qrels.201-250" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz</url>
+  	</qrels>
+
+  	<qrels id="trec.5.adhoc" path="trec/trec5/adhoc/qrels.251-300" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz</url>
+  	</qrels>
+
+  	<qrels id="trec.6.adhoc" path="trec/trec6/adhoc/qrels.301-350" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz</url>
+  	</qrels>
+
+  	<qrels id="trec.7.adhoc" path="trec/trec7/adhoc/qrels.351-400" type="trec">
+	  <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz</url>
+  	</qrels>
+
+  	<qrels id="trec.8.adhoc" path="trec/trec8/adhoc/qrels.401-450" type="trec">
+	  <url type="tar.gz">http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url>
+  	</qrels>
+
   </assessments>
 
   <!-- trec1 -->
@@ -171,7 +211,7 @@ ircqrels = {
   <!-- trec2 -->
   <task abstract="yes" name="trec.2">
     <task description="Ad-hoc task of TREC-2" name="adhoc">
-      <collection>trec.2.adhoc</collection>
+      <collection>trec.1.adhoc</collection>
       <topics>trec.2.adhoc</topics>
       <qrels>trec.2.adhoc</qrels>
     </task>
@@ -181,7 +221,7 @@ ircqrels = {
   <!-- trec3 -->
   <task abstract="yes" name="trec.3">
     <task description="Ad-hoc task of TREC-3" name="adhoc">
-      <collection>trec.3.adhoc</collection>
+      <collection>trec.1.adhoc</collection>
       <topics>trec.3.adhoc</topics>
       <qrels>trec.3.adhoc</qrels>
     </task>
@@ -205,7 +245,7 @@ ircqrels = {
     <task description="Ad-hoc task of trec5" name="adhoc">
       <collection>trec.5.adhoc</collection>
       <topics>trec.5.adhoc</topics>
-      <qrels>trec/trec5/adhoc/trec5.qrels.251-300.all</qrels>
+      <qrels>trec.5.adhoc</qrels>
     </task>
   </task>
 
@@ -216,7 +256,7 @@ ircqrels = {
     <task description="Ad-hoc task of trec6" name="adhoc">
       <collection>trec.6.adhoc</collection>
       <topics>trec.6.adhoc</topics>
-      <qrels>trec/trec6/adhoc/trec6.qrels.301-350.all</qrels>
+      <qrels>trec.6.adhoc</qrels>
     </task>
   </task>
 
@@ -226,7 +266,7 @@ ircqrels = {
     <task description="Ad-hoc task of trec7" name="adhoc">
       <collection>trec.7.adhoc</collection>
       <topics>trec.7.adhoc</topics>
-      <qrels>trec/trec7/adhoc/trec7.qrels.351-400.all</qrels>
+      <qrels>trec.7.adhoc</qrels>
     </task>
   </task>
 
@@ -235,9 +275,9 @@ ircqrels = {
   <task name="trec.8" abstract="yes">
     <type>TREC</type>
     <task name="adhoc" description="Ad-hoc task of TREC-8">
-      <collection>trec.8.adhoc</collection>
+      <collection>trec.7.adhoc</collection>
       <topics>trec.8.adhoc</topics>
-      <qrels id="trec.8.adhoc" path="trec/trec8/adhoc/trec8.qrels.401-450.all"/>
+      <qrels>trec.8.adhoc</qrels>
     </task>
   </task>
 
