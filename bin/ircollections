@@ -336,7 +336,7 @@ def prepareTask(tasks, argv):
     
     documents = task.documents    
     basepath = documents.getBasePath()
-    docfile = os.path.join(absolutePath("irc.cols"), "%s" % documents.id)
+    docfile = os.path.join(absolutePath("data", "irc.cols"), "%s" % documents.id)
     if not os.path.isfile(docfile):
         input = file(documents.getRelFiles(),"r")
         
