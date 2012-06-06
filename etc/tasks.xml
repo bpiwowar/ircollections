@@ -57,7 +57,11 @@
     <collection id="trec.ziff12"/>
     <collection id="trec.ziff2"/>
     <collection id="trec.ziff23"/>
+    
     <collection id="trec.wt10g" type="trec.web"/>
+    
+    <collection id="trec.clueweb09A" type="warc"/>
+    <collection id="trec.clueweb09B" type="warc"/>
 
 
     <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12"/>
@@ -66,9 +70,9 @@
     <collection id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990"/>
     <collection id="trec.7.adhoc" ref="fbis1 fr94 ft1 la8990"/>
 
-    <collection id="trec.dotgov"/>
-    <collection id="trec.dotgov2"/>
-    <collection id="trec.aquaint"/>
+    <collection id="trec.dotgov" type="trec.web"/>
+    <collection id="trec.dotgov2" type="trec.web"/>
+    <collection id="trec.aquaint" type="trec.web"/>
   </collections>
 
   <topics-sets>
@@ -126,25 +130,10 @@ irctopics = {
     	<property name="comma-separated-phrases"/>
     </topics>
 
-    <topics id="trec.9.web" path="trec/trec9/web/trec9.topics.web"/>
+    <topics id="trec.2004.robust" path="trec/2004/robust/topics">
+        <url type="gz">http://trec.nist.gov/data/robust/04.testset.gz</url>
+    </topics>
 
-    <topics id="trec.2001.web" path="trec/trec2001/web/trec2001.topics.web"></topics>
-
-    <topics id="trec.2003.web">trec/trec2003/web/trec2003.web.topics</topics>
-    <topics id="trec.2003.web.distillation">trec/trec2003/web/trec2003.web.distillation.topics</topics>
-
-    <topics id="trec.2004.web">trec/trec2004/web/trec2004.web.topics</topics>
-    <topics id="trec.2004.robust">trec/trec2004/robust/trec2004.robust.topics</topics>
-
-    <topics id="trec.2005.robust">trec/trec2005/robust/trec2005.robust.topics</topics>
-
-    <topics id="trec.2006.terabyte">trec/trec2006/terabyte/trec2006.topics.terabyte-701-850</topics>
-
-    <topics id="trec.2009.web" type="trec.2009.web">trec/trec2009/web/trec2009.web.topics</topics>
-
-    <topics id="trec.2010.session" type="trec.session">trec/trec2010/session/st10.topics.queries.only.txt</topics>
-
-    <topics id="trec.678.interactive">trec/trec678.interactive/trec678.interactive.topics</topics>
 
   </topics-sets>
 
@@ -196,6 +185,9 @@ ircqrels = {
 	  <url type="tar.gz">http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url>
   	</qrels>
 
+    <qrels id="trec.2004.robust" path="trec/2004/robust/qrels" type="trec">
+        <url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url>
+    </qrels> 
   </assessments>
 
   <!-- trec1 -->
@@ -301,7 +293,7 @@ ircqrels = {
     </task>
   </task>
 
-  <!-- TREC 9 -->
+  <!-- TREC 2001 -->
   <task name="trec.2001" abstract="yes">
     <type>TREC</type>
     <task name="web" description="Web task TREC-2001">
@@ -334,9 +326,9 @@ ircqrels = {
     <type>TREC</type>
 
     <task name="robust" description="Robust task of TREC 2004">
-      <collection>trec.8.adhoc</collection>
+      <collection>trec.7.adhoc</collection>
       <topics>trec.2004.robust</topics>
-      <qrels>trec/trec2004/robust/robust04.qrels.all</qrels>      
+      <qrels>trec.2004.robust</qrels>      
     </task>
 
     <task name="web" description="Web task of TREC 2004">

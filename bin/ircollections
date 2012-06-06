@@ -145,7 +145,9 @@ class Tasks():
         return self.tasks
         
     def getTask(self, id):
-        return Task(self.definitions, self.tasks.get(id))
+        task = self.tasks.get(id)
+        if task is None: raise Exception("No task [%s] can be found"%id)
+        return Task(self.definitions, task)
 
 
 class Documents:
@@ -352,9 +354,7 @@ def prepareTask(tasks, argv):
     for k,info in { "topics": task.topics, "qrels": task.assessments }.iteritems():
         type = info.url.get("type")
         url = info.url.text
-        f = downloadSchemes.get(type, None)
-        if f is None:
-            raise Exception("Cannot handle [%s]" % type)
+        f = downloadSchemes.get(type, downloadSchemes.get("plain"))
             
         if hasattr(info, "origPath") and not info.origPath is None: path = absolutePath(info.origPath)
         else: path = absolutePath(info.path)
@@ -427,11 +427,22 @@ def getGZFile(path, url, args):
     try: gzfile.close()
     except: pass
 
+def getPlainFile(path, url, args):
+    """Get a plain text file
+    """
+    tmpFile=tempfile.NamedTemporaryFile(delete=False)
+    log("Download in %s" % tmpFile.name)
+    urllib.urlretrieve(url, tmpFile.name)
+    log("Moving in %s" % path)
+    shutil.move(tmpFile.name, path)
+
+
 # List of download schemes  
 downloadSchemes = {
     "tar.gz#gz" : [getTarGZFile, True],
     "tar.gz" : [getTarGZFile, False],
-    "gz" : [getGZFile]
+    "gz" : [getGZFile],
+    "plain" : [getPlainFile]
 }
 
 ############
