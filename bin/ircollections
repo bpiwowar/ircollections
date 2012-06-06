@@ -65,7 +65,8 @@ def find(task, name):
 
 
 def findDefinition(definitions, id, parentType, type):
-    """Find a definition for a given id
+    """Find a definition for a given id and type
+        A definition is an XML element
     """
     xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
     el = []
@@ -124,7 +125,7 @@ class Tasks():
 
         self.definitions = [
             etree.parse(tasksfile),
-            etree.parse(os.path.join(dir,os.path.join("etc", "collections.xml")))]
+            etree.parse(os.path.join(dir,os.path.join("etc", "local.xml")))]
 
         log("Using the task file '%s'" % tasksfile)
         
@@ -170,8 +171,11 @@ class Documents:
         ref = self.collection.get("ref")
         if ref is None: self.ref = []
         else: self.ref = ref.split(" ")
-
+        
+        # Sets the base path for the collection (attribute basepath)
         self.basepath = self.collection.get("basepath")
+        if self.basepath is None:
+            self.basepath = absolutePath("data", "irc.docs", self.id)
 
     def getRelFiles(self):
         if self.aliased_from is None:
