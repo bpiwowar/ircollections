@@ -121,13 +121,14 @@ def xpath1(node, path):
 
 class Tasks():
     def __init__(self, dir):
-        tasksfile=os.path.join(dir,os.path.join("etc", "tasks.xml"))
+        self.definitions = [];
+        for xmlfile in [os.path.join(dir,os.path.join("etc", "tasks.xml")), os.path.join(dir,os.path.join("etc", "local.xml"))]:
+            try: self.definitions.append(etree.parse(xmlfile))
+            except etree.XMLSyntaxError as e: 
+                print "Cannot parse the XML file"
+                print e.error_log
+                sys.exit(-1)
 
-        self.definitions = [
-            etree.parse(tasksfile),
-            etree.parse(os.path.join(dir,os.path.join("etc", "local.xml")))]
-
-        log("Using the task file '%s'" % tasksfile)
         
         # Pre-compute the list of available tasks 
         # and get their corresponding XML node
@@ -358,6 +359,7 @@ def prepareTask(tasks, argv):
     for k,info in { "topics": task.topics, "qrels": task.assessments }.iteritems():
         type = info.url.get("type")
         url = info.url.text
+        # Get the download scheme, fallback on plain text
         f = downloadSchemes.get(type, downloadSchemes.get("plain"))
             
         if hasattr(info, "origPath") and not info.origPath is None: path = absolutePath(info.origPath)
@@ -484,6 +486,7 @@ def usage():
     command("get","Get the definition of a task")
     command("prepare", "Prepare a task")
     command("evaluate", "Evaluate a run for a given task")
+    command("xpm-path", "Returns the path of the experimaestro script")
     print
     
 def main(dir, argv):
@@ -505,17 +508,21 @@ def main(dir, argv):
     if len(args) == 0:
         usage()
     else:
-            tasks = Tasks(dir)
-            
             command = args[0]
             if command == "list":  
+                tasks = Tasks(dir)
                 listAllTasks(tasks)
             elif command == "get": 
+                tasks = Tasks(dir)
                 printTask(tasks, args[1:])
             elif command == "evaluate":
+                tasks = Tasks(dir)
                 evaluate(tasks, args[1:])
             elif command == "prepare":
+                tasks = Tasks(dir)
                 prepareTask(tasks, args[1:])
+            elif command == "xpm-path":
+                print absolutePath("etc","irc.js")
             else:
                 print "Command not recognised (%s)" % command
                 usage()

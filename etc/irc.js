@@ -71,7 +71,7 @@ var ircollections = {
 		var task_id = inputs.id.@xp::value;
 		xpm.log("IR task is [%s]", task_id);
 
-		args= [irc_bin.toString(), "get"];
+		args= [irc_bin.toString(), "prepare"];
 		if (inputs.restrict) 
 			args = args.concat("--restrict", inputs.restrict.@xp::value);
 					

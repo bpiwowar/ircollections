@@ -99,6 +99,8 @@ irctopics = {
     <topics id="trec.1.adhoc" path="trec/trec1/adhoc/trec1.topics.51-100">
       <property parts="desc"/>
       <url type="gz">http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
+      <!-- We need to replace topic numbers to match qrels -->
+      <replace pattern="Number:(\s+)0" with="Number: \1"/>
     </topics>
 
     <topics id="trec.2.adhoc" path="trec/trec2/adhoc/trec2.topics.101-150">
