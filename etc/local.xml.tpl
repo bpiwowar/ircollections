@@ -4,6 +4,6 @@
 -->
 
    <!-- Basepath for all the collections -->
-   <basepath pattern=".*"></basepath>
+   <collection pattern=".*" basepath="...PATH..."></collection>
    
 </collections>
