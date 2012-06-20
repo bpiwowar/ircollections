@@ -67,6 +67,11 @@ def find(task, name):
 def findDefinition(definitions, id, parentType, type):
     """Find a definition for a given id and type
         A definition is an XML element
+        
+        definitions -- The parsed source XML documents
+        parentType -- The type of the parent XML element
+        type -- The type of the defintion XML element
+        id -- The id of the definition (matches an id attribute)
     """
     xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
     el = []
@@ -98,7 +103,7 @@ def findDefinition(definitions, id, parentType, type):
                 # (2) Elements
                 for l in e: el.append(l)
 
-                    #    print(etree.tostring(el, pretty_print=True))
+    # print(etree.tostring(el, pretty_print=True))
 
     return [el]
 
@@ -168,7 +173,7 @@ class Documents:
         self.collection = collection[0]
         self.type = self.collection.get("type")
         self.id = id
-        
+
         ref = self.collection.get("ref")
         if ref is None: self.ref = []
         else: self.ref = ref.split(" ")
@@ -197,6 +202,7 @@ class Topics:
         self.url = xpath1(topics, "irc:url")
         self.id = id
         self.type = topics.get("type")
+        self.replace = xpath(topics, "irc:replace")
 
     def toXML(self):
         return E.topics(path=self.path, id=self.id, type=self.type)
