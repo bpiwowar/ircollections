@@ -353,12 +353,21 @@ def prepareTask(tasks, argv):
     if not os.path.isfile(docfile):
         input = file(documents.getRelFiles(),"r")
         
-        out = file(docfile,"w")
+        tmpdocfile = docfile + ".tmp"
+        out = file(tmpdocfile,"w")
         log("Generating the collection file [%s]" % docfile)
         for line in input.readlines():
-            out.write(os.path.join(basepath, line))
+            line = line.strip()
+            path = os.path.join(basepath, line)
+            if not os.path.exists(path):
+                out.close()
+                input.close()
+                os.remove(tmpdocfile)
+                raise Exception("File [%s] does not exist - aborting" % path)
+            out.write(path + "\n")
         out.close()
         input.close()
+        shutil.move(tmpdocfile, docfile)
     
     # --- Get topics
     
