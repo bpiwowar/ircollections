@@ -2,6 +2,8 @@
 
 This projects aims at grouping utilities to deal with the numerous and heterogenous information retrieval (IR) test collections, and to automate/standardize common operations like downloading topics, assessments or evaluating.
 
+*Note that this is beta software*, in particular the XML format is still subject to change. Please contact me if you use the software so I can keep you in the loop when doing so.
+
 ## Concepts
 
 - Each IR task has a unique identifier. For example, the ad-hoc track of TREC-1 has the identifier trec.1/adhoc;
@@ -37,6 +39,14 @@ file that should not be modified unless you want to add a new collection. To mod
 
 # Description of the XML format
 
+## Compression formats
+
+A compression format can be:
+
+- none: No compression format (default)
+- gzip: GZip files
+- bgzip: [Block gzip](http://blastedbio.blogspot.fr/2011/11/bgzf-blocked-bigger-better-gzip.html)  
+
 ## Tasks
 
 ### Ad-hoc task
@@ -46,6 +56,12 @@ Composed of a `adhoc` element with three children: `collection`, `topics` and `q
 ## Resources
 
 ### Documents
+
+Attributes:
+
+- path: The path to a file that contains a list of files (one per line)
+- type: The type of file
+- compression (_opt_): The compression mode for the files
 
 ### Topics
 

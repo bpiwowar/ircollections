@@ -11,6 +11,7 @@ import urllib
 from lxml import etree
 from lxml.builder import E, ElementMaker
 
+import argparse
 import sys
 import getopt
 import os.path
@@ -79,7 +80,7 @@ def findDefinition(definitions, id, parentType, type):
         el = el + doc.xpath(xpathStr, namespaces=ircns)
         
     if len(el) == 0: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
-    if len(el) > 1: raise Exception("Found too many a %s/%s with id %s [%d]" % (parentType, type, id, len(el)))
+    if len(el) > 1: raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
     el = el[0]
 
     # Look for an alias
@@ -282,9 +283,13 @@ class Task():
 ### List ###
 ############
 
-def listAllTasks(tasks):
+def command_list(opts):
     """ List all tasks
     """
+    tasks = Tasks(opts.dir)
+    opts.pattern = opts.pattern.replace("a", ".+")
+    opts.pattern = opts.pattern.replace("%", "[^/]+")
+
     tasks = tasks.getAllTasks()
     maxLen = 0
     for e in tasks.keys():
@@ -292,24 +297,16 @@ def listAllTasks(tasks):
         if maxLen < l: maxLen = l
 
     f = "%%-%ds %%s" % (maxLen + 3)
-    for name, e in tasks.iteritems():
+    for name, e in sorted(tasks.iteritems()):
         print f % (name, e.get("description"))
 
-###########
-### Get ###
-###########
 
-def printTask(tasks, argv):
-    r = process(argv)
-    taskid = r["taskid"]
-    task= tasks.getTask(taskid)
-    if r["restrict"]: task.restrict(tasks.definitions, r["restrict"])
-    print(etree.tostring(task.toXML(), pretty_print=True))
 
 
 ################
 ### Evaluate ###
 ################
+
 
 def find_bin(cmd):
     # Check the bin directory
@@ -320,27 +317,46 @@ def find_bin(cmd):
     return cmd
     
 
-def evaluate(tasks, argv):
-    if len(argv) != 3: raise Exception("Expected three arguments (type, qrels, file)")
+def command_evaluate(opts):
+    tasks = Tasks(opts.dir)
+    taskid = opts.task
+    task= tasks.getTask(taskid)
+    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
+    
+    run = opts.run
+    
     qtype=argv.pop(0)
     qrels=argv.pop(0)
     runfile=argv.pop(0)
-    
     
     if qtype == "trec":
         trec_eval = find_bin("trec_eval")
         subprocess.call([trec_eval, qrels, runfile], stdout=sys.stdout, stderr=sys.stderr)
     else: raise Exception("Cannot evaluate qrels with type %s", qtype)
     
+
+###########
+### Get ###
+###########
+
+def command_get(opts):
+    tasks = Tasks(opts.dir)
+    taskid = opts.task
+    task= tasks.getTask(taskid)
+    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
+    
+    print(etree.tostring(task.toXML(), pretty_print=True))
+
 ###############
 ### Prepare ###
 ###############
 
-def prepareTask(tasks, argv):
-    r = process(argv)
-    taskid = r["taskid"]
+
+def command_prepare(opts):
+    tasks = Tasks(opts.dir)
+    taskid = opts.task
     task= tasks.getTask(taskid)
-    if r["restrict"]: task.restrict(tasks.definitions, r["restrict"])
+    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
     print(etree.tostring(task.toXML(), pretty_print=True))
     
     definitions = tasks.definitions
@@ -470,83 +486,45 @@ downloadSchemes = {
 ### Main ###
 ############
 
-def process(argv):
-    try:                  
-        r = { "restrict": None, "taskid": None }
-        
-        opts, args = getopt.getopt(argv, "", ["restrict="])
-
-        for opt,arg in opts:
-            if opt in ("--restrict"):
-                r["restrict"] = arg
-        
-        r["taskid"] = args[0]        
-        return r
-    except getopt.GetoptError:           
-        usage()                
-        sys.exit(2)
-
-
-def usage():
-    def command(cmd, desc):
-        print "%-20s %s" % (cmd, desc)
-        
-    print "Usage:\n\nircollections [command]"
-    print
-    print "where command can be:"
-    print
-    command("help CMD","Give help for the command CMD")
-    print
-    command("list","List all available tasks")
-    command("get","Get the definition of a task")
-    command("prepare", "Prepare a task")
-    command("evaluate", "Evaluate a run for a given task")
-    command("xpm-path", "Returns the path of the experimaestro script")
-    print
+class IRCException():
+    def __init__(self):
+        pass
     
 def main(dir, argv):
-    # Parse command line arguments
-    try:                                
-        opts, args = getopt.getopt(argv, "hg:d", ["help", "task="])
+    # create the top-level parser
+    parser = argparse.ArgumentParser(description='IR collections script.')
+    subparsers = parser.add_subparsers(help='sub-command help', dest='command')
+    parser.set_defaults(dir=dir)
+     
+    # list 
+    parser_list = subparsers.add_parser("list", help="List the tasks")
+    parser_list.set_defaults(func=command_list)
 
-        for opt,arg in opts:
-            if opt in ("-h","--help"):
-                usage()
-                sys.exit()
+    parser_list.add_argument("--full", "-f", dest="full", action="store_true", help="Prints a full list (otherwise print first level)")
+    parser_list.add_argument("--pattern", "-p", help="Pattern for task name where %% matches one level and %%%% matches all", default="^%")
+
+    # get & prepare
+    parser_prepare = subparsers.add_parser("prepare", help="Prepare resources for a task")
+    parser_prepare.set_defaults(func=command_prepare)
+
+    parser_get = subparsers.add_parser("get", help="Get a task")
+    parser_get.set_defaults(func=command_get)
+
+    parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
+    parser_evaluate.set_defaults(func=command_evaluate)
+
+    for p in [parser_get, parser_prepare, parser_evaluate]:
+        p.add_argument("--restrict", help="Restrict to a sub-collection")
+        p.add_argument("task", help="The task name")
+        
+    parser_evaluate.add_argument("run", help="The run file to evaluate")
     
-    except getopt.GetoptError:           
-        usage()                
-        sys.exit(2)
-
-
-    
-    if len(args) == 0:
-        usage()
-    else:
-            command = args[0]
-            if command == "list":  
-                tasks = Tasks(dir)
-                listAllTasks(tasks)
-            elif command == "get": 
-                tasks = Tasks(dir)
-                printTask(tasks, args[1:])
-            elif command == "evaluate":
-                tasks = Tasks(dir)
-                evaluate(tasks, args[1:])
-            elif command == "prepare":
-                tasks = Tasks(dir)
-                prepareTask(tasks, args[1:])
-            elif command == "xpm-path":
-                print absolutePath("etc","irc.js")
-            else:
-                print "Command not recognised (%s)" % command
-                usage()
-                sys.exit(1)
-## except Exception as e:
-##     print "Error while running command %s:" % command
-##     print e
-##     sys.exit(2)
-
+    args = parser.parse_args()
+    print "Arguments are [%s]" % args
+    try: args.func(args)
+    except IRCException as e:
+        print "Error while running command %s:" % args.command
+        print e
 
     
 # ---- MAIN ----
