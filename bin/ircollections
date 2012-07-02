@@ -520,7 +520,6 @@ def main(dir, argv):
     parser_evaluate.add_argument("run", help="The run file to evaluate")
     
     args = parser.parse_args()
-    print "Arguments are [%s]" % args
     try: args.func(args)
     except IRCException as e:
         print "Error while running command %s:" % args.command
