@@ -13,7 +13,6 @@ from lxml.builder import E, ElementMaker
 
 import argparse
 import sys
-import getopt
 import os.path
 from os.path import dirname, normpath, join
 import traceback
@@ -76,7 +75,7 @@ def findDefinition(definitions, id, parentType, type):
     """
     xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
     el = []
-    for doc in definitions:
+    for doc,priority in definitions:
         el = el + doc.xpath(xpathStr, namespaces=ircns)
         
     if len(el) == 0: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
@@ -86,20 +85,25 @@ def findDefinition(definitions, id, parentType, type):
     # Look for an alias
     alias = el.get("alias")
     if not alias is None:
+        # Find the definition of the alias...
         a = findDefinition(definitions, alias, parentType, type)
+        # ... and append ourselves to the end
         a.append(el)
         return a
         
+    priorities = {}
+    
     # Look at patterns
     patternPath="//irc:%s/irc:%s[@pattern]" % (parentType, type)
-    for doc in definitions:
+    for doc,priority in definitions:
         for e in xpath(doc, patternPath):
             if re.match(e.get("pattern"), el.get("id")):
                 # If we have a pattern match, we merge the elements
                 # (1) Attributes [but pattern]
                 for k,v in e.attrib.iteritems():
-                    if not (k == "pattern"):
+                    if not (k == "pattern") and ((el.get(k) is None) or (priorities.get(k, 0) < priority)):
                         el.set(k, v)
+                        priorities[k] = priority
 
                 # (2) Elements
                 for l in e: el.append(l)
@@ -128,8 +132,10 @@ def xpath1(node, path):
 class Tasks():
     def __init__(self, dir):
         self.definitions = [];
-        for xmlfile in [os.path.join(dir,os.path.join("etc", "tasks.xml")), os.path.join(dir,os.path.join("etc", "local.xml"))]:
-            try: self.definitions.append(etree.parse(xmlfile))
+        # Loop over pairs of (filepath, priority [higher better])
+        for xmlfile in [ [os.path.join(dir,os.path.join("etc", "tasks.xml")), 0], 
+                         [os.path.join(dir,os.path.join("etc", "local.xml")), 10] ]:
+            try: self.definitions.append([etree.parse(xmlfile[0]), xmlfile[1]])
             except etree.XMLSyntaxError as e: 
                 print "Cannot parse the XML file"
                 print e.error_log
@@ -139,7 +145,7 @@ class Tasks():
         # Pre-compute the list of available tasks 
         # and get their corresponding XML node
         self.tasks = {}
-        for doc in self.definitions:
+        for doc,priority in self.definitions:
             for e in xpath(doc, '//irc:task[not(@abstract)]'):
                 name = None
                 for p in xpath(e, "ancestor-or-self::irc:task"):
@@ -163,7 +169,7 @@ class Documents:
     """
     def __init__(self, doc, id):
         collection = findDefinition(doc, id, "collections", "collection")
-        
+
         if len(collection) == 0:
             raise Exception("Could not find collection with id [%s]" % id)
 
@@ -184,6 +190,8 @@ class Documents:
         if self.basepath is None:
             self.basepath = absolutePath("data", "irc.docs", self.id)
 
+        self.compression = self.collection.get("compression")
+
     def getRelFiles(self):
         if self.aliased_from is None:
             return os.path.join(absolutePath("docs"), "%s.relfiles" % self.id)
@@ -194,8 +202,10 @@ class Documents:
 
     def toXML(self):
         path = absolutePath("data", "irc.cols", self.id)
-        return E.documents(type=self.type, path=path, id=self.id)
-    
+        xml = E.documents(type=self.type, path=path, id=self.id)
+        if self.compression is not None: xml.set("compression", self.compression)
+        return xml
+        
 class Topics:
     def __init__(self, doc, id):
         topics = findDefinition(doc, id, "topics-sets", "topics")[0]
@@ -203,10 +213,12 @@ class Topics:
         self.url = xpath1(topics, "irc:url")
         self.id = id
         self.type = topics.get("type")
+        self.compression = topics.get("compression")
         self.replace = xpath(topics, "irc:replace")
 
     def toXML(self):
-        return E.topics(path=self.path, id=self.id, type=self.type)
+        xml = E.topics(path=self.path, id=self.id, type=self.type)
+        return xml
     
 class Assessments:
     """This represents Assessments
@@ -257,7 +269,7 @@ class Task():
     def __init__(self, doc, xml):
         self.documents = Documents(doc, find(xml, "collection").text)
         self.assessments = Assessments(doc, find(xml, "qrels").text)
-        self.topics = Topics(doc, find(xml, "qrels").text)
+        self.topics = Topics(doc, find(xml, "topics").text)
     
     def toXML(self):
         root = E.task(
@@ -375,7 +387,7 @@ def command_prepare(opts):
         for line in input.readlines():
             line = line.strip()
             path = os.path.join(basepath, line)
-            if not os.path.exists(path):
+            if opts.check_files and not os.path.exists(path):
                 out.close()
                 input.close()
                 os.remove(tmpdocfile)
@@ -506,7 +518,8 @@ def main(dir, argv):
     # get & prepare
     parser_prepare = subparsers.add_parser("prepare", help="Prepare resources for a task")
     parser_prepare.set_defaults(func=command_prepare)
-
+    parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
+    
     parser_get = subparsers.add_parser("get", help="Get a task")
     parser_get.set_defaults(func=command_get)
 
