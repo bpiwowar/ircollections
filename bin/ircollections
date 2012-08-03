@@ -122,7 +122,9 @@ def xpath(node, path):
 
 def xpath1(node, path):
     """Get the first item returned by an XPath"""
-    return node.xpath(path, namespaces = ircns)[0]
+    n = node.xpath(path, namespaces = ircns)
+    if len(n) > 0: return n[0]
+    return None
 
 
 ###############
@@ -208,10 +210,14 @@ class Documents:
         
 class Topics:
     def __init__(self, doc, id):
-        topics = findDefinition(doc, id, "topics-sets", "topics")[0]
-        self.path = absolutePath("data", topics.get("path"))
-        self.url = xpath1(topics, "irc:url")
         self.id = id
+        topics = findDefinition(doc, id, "topics-sets", "topics")[0]
+        self.path = topics.get("path")
+        if self.path is None:
+            self.path = os.path.join(re.sub("\\.", os.sep, self.id), "topics")
+        self.path = absolutePath("data", self.path)    
+        
+        self.url = xpath1(topics, "irc:url")
         self.type = topics.get("type")
         self.compression = topics.get("compression")
         self.replace = xpath(topics, "irc:replace")
@@ -224,13 +230,20 @@ class Assessments:
     """This represents Assessments
     """
     def __init__(self, doc, id):
+        self.id = id
         qrels = findDefinition(doc, id, "assessments", "qrels")[0]
         if qrels is None:
             raise Exception("Could not find assessments with id [%s]" % id)
-        self.path = absolutePath("data", qrels.get("path"))
+        
+        self.path =  qrels.get("path")
+        if self.path is None:
+            self.path = os.path.join(re.sub("\\.", os.sep, self.id), "qrels")
+        self.path = absolutePath("data", self.path)    
+        
+        
         self.url = xpath1(qrels, "irc:url")
-        self.id = id
         self.type = qrels.get("type")
+        self.replace = xpath(qrels, "irc:replace")
         
     def restrict(self, documents):
         self.documents = documents
@@ -369,7 +382,6 @@ def command_prepare(opts):
     taskid = opts.task
     task= tasks.getTask(taskid)
     if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
-    print(etree.tostring(task.toXML(), pretty_print=True))
     
     definitions = tasks.definitions
     
@@ -397,29 +409,54 @@ def command_prepare(opts):
         input.close()
         shutil.move(tmpdocfile, docfile)
     
-    # --- Get topics
+    # --- Get topics and assessments
     
-    for k,info in { "topics": task.topics, "qrels": task.assessments }.iteritems():
+    for k,info2 in { "topics": [task.topics, opts.download_topics], "qrels": [task.assessments, opts.download_assessments] }.iteritems():
+        info = info2[0]
+        force = info2[1]
+        
         type = info.url.get("type")
         url = info.url.text
-        # Get the download scheme, fallback on plain text
+        # Get the downloading scheme, fallback on plain text
         f = downloadSchemes.get(type, downloadSchemes.get("plain"))
             
         if hasattr(info, "origPath") and not info.origPath is None: path = absolutePath(info.origPath)
         else: path = absolutePath(info.path)
             
-        if not os.path.exists(path):
+        if not os.path.exists(path) or force:
             log("Downloading %s %s into [%s]..." % (k, info.id, path))
             createBaseDir(path)
-            f[0](path, url, f[1:])
-            
-        # Restrict if needed
+            if len(info.replace) == 0:
+                f[0](path, url, f[1:])
+            else:
+                # Replace with regular expressions
+                origPath = path
+                tmpPath=tempfile.NamedTemporaryFile(delete=True)
+                print tmpPath.name
+                f[0](tmpPath.name, url, f[1:])
+
+                patterns = [ [re.compile(r.get("pattern")), r.get("with")] for r in info.replace]
+                
+                tmpPath2=tempfile.NamedTemporaryFile(delete=False)
+                out = open(tmpPath2.name, 'w')
+                for line in open(tmpPath.name, 'r'):
+                    for p in patterns: 
+                        line = p[0].sub(p[1], line)
+                    out.write(line)
+                out.close()
+                
+                shutil.move(tmpPath2.name, path)
+                
+                
+        # Restrict if needed by filtering
         if hasattr(info, "origPath"):
             path2 = absolutePath(info.path)
             if not os.path.exists(path2):
                 createBaseDir(path2)
                 info.filter(path, path2)
-
+                
+    # --- Everything OK, print
+    print(etree.tostring(task.toXML(), pretty_print=True))
     
     
 def createBaseDir(path):
@@ -519,6 +556,8 @@ def main(dir, argv):
     parser_prepare = subparsers.add_parser("prepare", help="Prepare resources for a task")
     parser_prepare.set_defaults(func=command_prepare)
     parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
+    parser_prepare.add_argument("--download-assessments", dest="download_assessments", action="store_true", help="Force downloading assessments")
+    parser_prepare.add_argument("--download-topics", dest="download_topics", action="store_true", help="Force downloading topics")
     
     parser_get = subparsers.add_parser("get", help="Get a task")
     parser_get.set_defaults(func=command_get)

@@ -74,7 +74,7 @@ Below are listed all the configured collections, along with what can be automati
 ## Adhoc
 
 - TREC-1 to TREC-8 (Topics and Assesments)
-- TREC Robust 2004 (Topics and Assesments)
+- TREC Robust 2003-2005 (Topics and Assesments)
 
 # The commands
 

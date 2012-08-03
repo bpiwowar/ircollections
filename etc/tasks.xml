@@ -69,7 +69,7 @@
         <collection id="trec.clueweb09A" type="warc/0.18" description="ClueWeb09 Subset A"/>
         <collection id="trec.clueweb09b" type="warc/0.18" description="ClueWeb09 Subset B">
             <!-- Defines a sub-collection -->
-            <subcollection file-pattern="en0000-.*" document-pattern="en0000/\d+\.warc"/>
+            <subcollection id="en0000" file-pattern="en0000-.*" document-pattern="en0000/\d+\.warc.*"/>
         </collection>
         
     </collections>
@@ -82,61 +82,65 @@
     
     <topics-sets>
         <!-- Global definitions: trec collections are of type trec -->
-        <topics pattern="trec.*" type="trec"/>
+        <topics pattern="trec.*" />
 
-        <topics id="trec.1.adhoc" path="trec/trec1/adhoc/trec1.topics.51-100">
+        <topics id="trec.1.adhoc" type="trec" path="trec/trec1/adhoc/trec1.topics.51-100">
             <property parts="desc"/>
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
             <!-- We need to replace topic numbers to match qrels -->
             <replace pattern="Number:(\s+)0" with="Number: \1"/>
         </topics>
-        <topics id="trec.2.adhoc" path="trec/trec2/adhoc/trec2.topics.101-150">
+        <topics id="trec.2.adhoc" type="trec" path="trec/trec2/adhoc/trec2.topics.101-150">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.101-150.gz</url>
         </topics>
-        <topics id="trec.3.adhoc" path="trec/trec3/adhoc/trec3.topics.151-200">
+        <topics id="trec.3.adhoc" type="trec" path="trec/trec3/adhoc/trec3.topics.151-200">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.151-200.gz</url>
         </topics>
-        <topics id="trec.4.adhoc" path="trec/trec4/adhoc/trec4.topics.201-250">
+        <topics id="trec.4.adhoc" type="trec" path="trec/trec4/adhoc/trec4.topics.201-250">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.201-250.gz</url>
         </topics>
-        <topics id="trec.5.adhoc" path="trec/trec5/adhoc/trec5.topics.251-300">
+        <topics id="trec.5.adhoc" type="trec" path="trec/trec5/adhoc/trec5.topics.251-300">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.251-300.gz</url>
         </topics>
-        <topics id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.topics.301-350">
+        <topics id="trec.6.adhoc" type="trec" path="trec/trec6/adhoc/trec6.topics.301-350">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.301-350.gz</url>
         </topics>
-        <topics id="trec.7.adhoc" path="trec/trec7/adhoc/trec7.topics.351-400">
+        <topics id="trec.7.adhoc" type="trec" path="trec/trec7/adhoc/trec7.topics.351-400">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.351-400.gz</url>
         </topics>
-        <topics id="trec.8.adhoc" path="trec/trec8/adhoc/trec8.topics.401-450">
+        <topics id="trec.8.adhoc" type="trec" path="trec/trec8/adhoc/trec8.topics.401-450">
             <url type="gz">http://trec.nist.gov/data/topics_eng/topics.401-450.gz</url>
             <property name="comma-separated-phrases"/>
         </topics>
-        <topics id="trec.2004.robust" path="trec/2004/robust/topics">
+        
+        
+        <!-- Robust 2003-2005 -->
+        <topics id="trec.2003.robust" type="trec" path="trec/2003/robust/topics">
+            <url>http://trec.nist.gov/data/topics_eng/robust.03.final_100.txt</url>
+        </topics>
+
+        <topics id="trec.2004.robust" type="trec" path="trec/2004/robust/topics">
             <url type="gz">http://trec.nist.gov/data/robust/04.testset.gz</url>
         </topics>
+
+        <topics id="trec.2005.robust" type="trec">
+            <url>http://trec.nist.gov/data/robust/05/05.50.topics.txt</url>
+        </topics>
+
 
         <topics id="trec.2009.web" path="trec/2009/web/wt09.topics.full.xml" type="webtrack2009">
             <url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url>
         </topics>
         
+        
     </topics-sets>
-    <assessments>
-        <!--
-ircqrels = {
-    "trec.2.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz"],
-    "trec.3.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz"],
-    "trec.4.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz"],
-    "trec.5.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz"],
-    "trec.6.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz"],
-    "trec.7.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz", True],
-    "trec.8.adhoc": [qrelsTRECGZ, "http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz", False],
-}
 
-    -->
+    <assessments>
         <!-- Global definitions: trec collections are of type trec -->
         <qrels pattern="trec\..*\.adhoc" type="trec.adhoc"/>
-        <!-- TREC data (source http://trec.nist.gov/data/qrels_eng/index.html) -->
+        
+        
+        <!-- TREC-1 to TREC-8 -->
         <qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
             <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url>
         </qrels>
@@ -161,9 +165,20 @@ ircqrels = {
         <qrels id="trec.8.adhoc" path="trec/trec8/adhoc/qrels.401-450" type="trec">
             <url type="tar.gz">http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url>
         </qrels>
-        <qrels id="trec.2004.robust" path="trec/2004/robust/qrels" type="trec">
+        
+        <!-- ROBUST 2003-05 -->
+        <qrels id="trec.2003.robust" type="trec">
             <url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url>
         </qrels>
+
+        <qrels id="trec.2004.robust" type="trec">
+            <url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url>
+        </qrels>
+        <qrels id="trec.2005.robust" type="trec">
+            <url>http://trec.nist.gov/data/robust/05/TREC2005.qrels.txt</url>
+        </qrels>
+        
+        
         
         <!-- QRels for the TREC 2009 Web Track -->
         <qrels id="trec.2009.web.adhoc-A" path="trec/2009/web/qrels-1-50-a.dat" type="trec">
@@ -275,9 +290,18 @@ ircqrels = {
                 <qrels type="trec.adhoc">trec/trec2001/web/trec2001.web.qrels</qrels>
             </task>
         </task>
+        
+        
         <!-- TREC 2003 -->
         <task name="2003" abstract="yes">
             <type>TREC</type>
+            
+            <task name="robust" description="Robust task of TREC 2003">
+                <collection>trec.7.adhoc</collection>
+                <topics>trec.2003.robust</topics>
+                <qrels>trec.2003.robust</qrels>
+            </task>
+            
             <task name="web" description="Web task of TREC-2003 (distillation + named page)">
                 <collection>trec.dotgov</collection>
                 <topics>trec.2003.web</topics>
@@ -288,6 +312,8 @@ ircqrels = {
                 </task>
             </task>
         </task>
+        
+        
         <!-- TREC 2004 -->
         <task name="2004" abstract="yes">
             <type>TREC</type>
@@ -302,13 +328,14 @@ ircqrels = {
                 <qrels>trec/trec2004/web/trec2004.web.qrels</qrels>
             </task>
         </task>
-        <!-- TREC 2004 -->
+        
+        <!-- TREC 2005 -->
         <task name="2005" abstract="yes">
             <type>TREC</type>
             <task name="robust" description="Robust task of TREC 2005">
                 <collection>trec.aquaint</collection>
                 <topics>trec.2005.robust</topics>
-                <qrels>trec/trec2005/robust/robust05.qrels.all</qrels>
+                <qrels>trec.2005.robust</qrels>
             </task>
         </task>
         
