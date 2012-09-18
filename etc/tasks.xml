@@ -131,7 +131,7 @@
         <topics id="trec.2009.web" path="trec/2009/web/wt09.topics.full.xml" type="webtrack2009">
             <url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url>
         </topics>
-        
+
         
     </topics-sets>
 
@@ -187,6 +187,10 @@
         <qrels id="trec.2009.web.adhoc-B" path="trec/2009/web/qrels-1-50-b.dat" type="trec">
             <url type="gz">http://trec.nist.gov/data/web/09/prels.catB.1-50.gz</url>
         </qrels>
+        <qrels id="trec.2009.web.diversity" type="trec.diversity">
+            <url type="gz">http://trec.nist.gov/data/web/09/qrels.diversity.gz</url>
+        </qrels>
+
         
     </assessments>
     
@@ -351,11 +355,11 @@
         
         <!-- TREC 2009 -->
         <task name="2009" abstract="yes">
-            <task name="web" abstract="yes">
+            <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2009.html">
                 <!-- Topics are common to all web tasks -->
                 <topics>trec.2009.web</topics>
                 
-                <task name="diversity" description="Web diversity track for TREC 2010" abstract="yes">
+                <task name="diversity" description="Web diversity track for TREC 2009" abstract="yes">
                     <type>TREC</type>
                     <task name="clueweb09b" description="Web diversity track for TREC 2009 (ClueWeb-B data collection)">
                         <collection>trec.clueweb09b</collection>
