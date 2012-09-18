@@ -211,7 +211,11 @@ class Documents:
 class Topics:
     def __init__(self, doc, id):
         self.id = id
+
         topics = findDefinition(doc, id, "topics-sets", "topics")[0]
+        if topics is None:
+            raise Exception("Could not find topics with id [%s]" % id)
+
         self.path = topics.get("path")
         if self.path is None:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "topics")
@@ -240,9 +244,10 @@ class Assessments:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "qrels")
         self.path = absolutePath("data", self.path)    
         
-        
         self.url = xpath1(qrels, "irc:url")
         self.type = qrels.get("type")
+        if self.type is None:
+            raise Exception("Type for assessments %s is not defined" % id)
         self.replace = xpath(qrels, "irc:replace")
         
     def restrict(self, documents):
@@ -325,6 +330,14 @@ def command_list(opts):
     for name, e in sorted(tasks.iteritems()):
         print f % (name, e.get("description"))
 
+#################
+### Information #
+#################
+
+def command_info(args):
+    print("%30s\t%s" % ("Main directory", args.dir))
+    print("%30s\t%s" % ("Global configuration", os.path.join(args.dir,os.path.join("etc", "tasks.xml"))))
+    print("%30s\t%s" % ("Location configuration", os.path.join(args.dir,os.path.join("etc", "local.xml"))))
 
 
 
@@ -544,26 +557,25 @@ def main(dir, argv):
     parser = argparse.ArgumentParser(description='IR collections script.')
     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
     parser.set_defaults(dir=dir)
-     
+
+    # Informations
+    subparsers.add_parser("info", help="Information about ircollections")
+
     # list 
     parser_list = subparsers.add_parser("list", help="List the tasks")
-    parser_list.set_defaults(func=command_list)
 
     parser_list.add_argument("--full", "-f", dest="full", action="store_true", help="Prints a full list (otherwise print first level)")
     parser_list.add_argument("--pattern", "-p", help="Pattern for task name where %% matches one level and %%%% matches all", default="^%")
 
     # get & prepare
     parser_prepare = subparsers.add_parser("prepare", help="Prepare resources for a task")
-    parser_prepare.set_defaults(func=command_prepare)
     parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
     parser_prepare.add_argument("--download-assessments", dest="download_assessments", action="store_true", help="Force downloading assessments")
     parser_prepare.add_argument("--download-topics", dest="download_topics", action="store_true", help="Force downloading topics")
     
     parser_get = subparsers.add_parser("get", help="Get a task")
-    parser_get.set_defaults(func=command_get)
 
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
-    parser_evaluate.set_defaults(func=command_evaluate)
 
     for p in [parser_get, parser_prepare, parser_evaluate]:
         p.add_argument("--restrict", help="Restrict to a sub-collection")
@@ -572,7 +584,10 @@ def main(dir, argv):
     parser_evaluate.add_argument("run", help="The run file to evaluate")
     
     args = parser.parse_args()
-    try: args.func(args)
+    try: 
+        fname = "command_%s" % args.command.replace("-","_");
+        f = globals()[fname]
+        f(args)
     except IRCException as e:
         print "Error while running command %s:" % args.command
         print e
