@@ -4,31 +4,17 @@
 
 */
 
-var script_path = xpm.getScriptPath();
+var script_path = xpm.get_script_path();
 var irc_dir = java.io.File(script_path).getParentFile().getParentFile();
 xpm.log("IR collections directory is %s", irc_dir);
 
 var irc_bin = java.io.File(java.io.File(irc_dir,"bin"), "ircollections");
 
-var xpmns = new Namespace(xpm.ns());
+var irc = new Namespace("http://ircollections.sourceforge.net");
+
+xpm.set_property("namespace", irc);
 
 
-
-
-// ---	
-// --- Get a collection definition
-// ---
-
-/**
- Gives a qualified names
- @param x URL part
- @param y Fragment identifier
-*/
-var ircns = function(x,y) { 
-	return "http://ircollections.sourceforge.net" + (x ?  "/" + x : "") + (y ? ":" + y : "" )
-};
-
-var irc = new Namespace(ircns());
 
 
 var module_irc = {
@@ -42,12 +28,12 @@ var module_irc = {
 	</p>
 };
 
-xpm.addModule(module_irc);
+xpm.add_module(module_irc);
 
 // --- This task
 var ircollections = {
 	// The id
-	id: xpm.qName(ircns(), "get-task"),
+	id: qname(irc, "get-task"),
     
     module: module_irc.id,
     
@@ -58,13 +44,11 @@ var ircollections = {
     </>,
     
     inputs: <inputs>
-               <input id="id" type="xs:string" help="The name of the IR task (e.g. trec.7/adhoc)"/>               
-               <input id="restrict" type="xs:string" help="Restrict to a subcollection" optional="true"/>
+               <value id="id" type="xs:string" help="The name of the IR task (e.g. trec.7/adhoc)"/>               
+               <value id="restrict" value-type="xs:string" help="Restrict to a subcollection" optional="true"/>
 			</inputs>,
 
-    outputs: <outputs xmlns:irc={irc.uri}>
-			<output id="task" type="irc:task"/>
-		</outputs>,
+    output: qname(irc, "task"),
                            
     // Creates a new instance of this experiment
 	run: function(inputs) { 
@@ -87,7 +71,7 @@ var ircollections = {
 		
 		
 		r = new XML(output[1]);
-		
+
 		/*
 		 * Example of output: 
 		 * <task xmlns="http://ircollections.sf.net" id="trec.6/adhoc">
@@ -109,14 +93,12 @@ var ircollections = {
 		r.irc::qrels.@xp::id = "qrels";
 		r.irc::qrels.@xp::value = r.irc::qrels.@id;
 		
-		return <xp:outputs xmlns:xp={xp.uri}>
-			{r}
-		</xp:outputs>;
+		return r;
 	}
 	
 };
 
-xpm.addTaskFactory(ircollections);
+xpm.add_task_factory(ircollections);
 
 
 
@@ -124,7 +106,7 @@ xpm.addTaskFactory(ircollections);
  * Evaluate a run
  */
 var task_evaluate = {
-	id: xpm.qName(ircns(), "evaluate"),
+	id: qname(irc, "evaluate"),
 	version: "1.0",
 
     module: module_irc.id,
@@ -132,13 +114,12 @@ var task_evaluate = {
 	description: <><p>Evaluate a run</p></>,
 
 	inputs: <inputs xmlns:irc={irc}>
-		<input id="run" type="irc:run" help="The run to evaluate"/>
-		<input id="qrels" type="irc:qrels" help="The relevance assessments"/>
-		<input id="out" type="xp:file"/>
+		<value id="run" type="irc:run" help="The run to evaluate"/>
+		<value id="qrels" type="irc:qrels" help="The relevance assessments"/>
+		<value id="out" type="xp:file"/>
 	</inputs>,
 	
-	outputs: <></>,
-	
+
 	run: function(o) {
 	
 		var command = [irc_bin.toString(), "evaluate",
@@ -159,4 +140,4 @@ var task_evaluate = {
 };
 
 
-xpm.addTaskFactory(task_evaluate);
+xpm.add_task_factory(task_evaluate);
