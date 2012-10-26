@@ -6,19 +6,23 @@ This projects aims at grouping utilities to deal with the numerous and heterogen
 
 ## Concepts
 
-- Each IR task has a unique identifier. For example, the ad-hoc track of TREC-1 has the identifier trec.1/adhoc;
+- Each IR task has a unique identifier. For example, the ad-hoc track of TREC-1 has the identifier trec/1992/adhoc;
 - To each task is associated an XML description, composed of informations about the document collection, the topics and the assessments;
-- A collection is made of a list of files that whose relative path is predefined in ir.collections.
 
 ## Example of a task description
 
-The IR task trec.1/adhoc is associated with
+The IR task trec/1992/adhoc is associated with the following XML description
 
-    <task xmlns="http://ircollections.sourceforge.net">
-      <documents path="/apath/data/irc.cols/trec.1.adhoc" type="trec" id="trec.1.adhoc"/>
-      <topics path="/apath/data/trec/trec1/adhoc/trec1.topics.51-100" type="trec" id="trec.1.adhoc"/>
-      <qrels path="/apath/data/trec/trec1/adhoc/qrels.51-100" type="trec.adhoc" id="trec.1.adhoc"/>
-    </task>
+      <task xmlns="http://ircollections.sourceforge.net">
+        <documents path=".../data/irc.cols/trec.1.adhoc" type="trec" id="trec.1.adhoc"/>
+        <topics path=".../data/trec/trec1/adhoc/trec1.topics.51-100" type="trec" id="trec.1.adhoc"/>
+        <qrels path=".../data/trec/trec1/adhoc/qrels.51-100" type="trec" id="trec.1.adhoc"/>
+      </task>
+
+The description defines three resources:
+
+1. The document collection (`@path` gives the path to a file containing the list of documents that compose the collection). Files are in TREC standard format
+1. The topics (in TREC standard format)
 
 # Installation
 
@@ -33,19 +37,20 @@ file that should not be modified unless you want to add a new collection. To mod
       <collection pattern=".*" basepath="/Volumes/storage/ir_collections/data"/>
 
       <!-- ClueWeb has been compressed -->
-      <collection id="trec.clueweb09b" compression="block"/>
+      <collection id="trec.clueweb09b" compression="bgzip"/>
       
     </collections>
 
 # Description of the XML format
 
 ## Compression formats
+<a id="compression"></a>
 
 A compression format can be:
 
 - none: No compression format (default)
 - gzip: GZip files
-- bgzip: [Block gzip](http://blastedbio.blogspot.fr/2011/11/bgzf-blocked-bigger-better-gzip.html)  
+- bgzip: [Block gzip](http://blastedbio.blogspot.fr/2011/11/bgzf-blocked-bigger-better-gzip.html) are gzip-compatible but have a constant random access time (at the cost of compression ratio)
 
 ## Tasks
 
@@ -61,7 +66,9 @@ Attributes:
 
 - path: The path to a file that contains a list of files (one per line)
 - type: The type of file
-- compression (_opt_): The compression mode for the files
+   - trec: Standard trec format
+   - warc/0.18
+- compression (_opt_): The compression mode for the files (see [the compression formats](#compression))
 
 ### Topics
 

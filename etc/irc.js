@@ -1,6 +1,7 @@
 /*
 
 	Experimaestro javascript code
+	see http://experimaestro.sf.net
 
 */
 
@@ -44,6 +45,7 @@ var ircollections = {
     </>,
     
     inputs: <inputs>
+    		   <value id="command" default="prepare" type="xs:string"/>
                <value id="id" type="xs:string" help="The name of the IR task (e.g. trec.7/adhoc)"/>               
                <value id="restrict" value-type="xs:string" help="Restrict to a subcollection" optional="true"/>
 			</inputs>,
@@ -55,7 +57,7 @@ var ircollections = {
 		var task_id = inputs.id.@xp::value;
 		xpm.log("IR task is [%s]", task_id);
 
-		args= [irc_bin.toString(), "prepare"];
+		args= [path(irc_bin), inputs.command.@value];
 		if (inputs.restrict) 
 			args = args.concat("--restrict", inputs.restrict.@xp::value);
 					
@@ -70,28 +72,7 @@ var ircollections = {
 				+ output[0] + ", command was [" + command.toString() + "]";
 		
 		
-		r = new XML(output[1]);
-
-		/*
-		 * Example of output: 
-		 * <task xmlns="http://ircollections.sf.net" id="trec.6/adhoc">
-		 *  <documents id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990" path="cols/trec6.col.files"/>
-		 *  <topics id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.topics.301-350"/>
-		 *  <qrels id="trec.6.adhoc" path="trec/trec6/adhoc/trec6.qrels.301-350.all"/>
-		 * </task>
-		 */
-					
-		// --- Set identifiers for experimaestro
-		var topics = r.irc::topics;
-		topics.@xp::id = "topics";
-		topics.@xp::value = topics.@id;
-		
-		var docs = r.irc::documents;
-		docs.@xp::id = "documents";
-		docs.@xp::value = docs.@id;
-		
-		r.irc::qrels.@xp::id = "qrels";
-		r.irc::qrels.@xp::value = r.irc::qrels.@id;
+		r = new XML(output[1]);	
 		
 		return r;
 	}
@@ -103,39 +84,49 @@ xpm.add_task_factory(ircollections);
 
 
 /**
- * Evaluate a run
+ * Evaluate a run : hypotheses about evaluation are the same than
+ * for adhoc runs - there are topics, evaluation metrics, a run file
+ * and an assessmentr file
  */
 var task_evaluate = {
 	id: qname(irc, "evaluate"),
-	version: "1.0",
 
     module: module_irc.id,
 
-	description: <><p>Evaluate a run</p></>,
+	description: <>
+		<p>Evaluate a run</p>
+	</>,
 
 	inputs: <inputs xmlns:irc={irc}>
-		<value id="run" type="irc:run" help="The run to evaluate"/>
-		<value id="qrels" type="irc:qrels" help="The relevance assessments"/>
-		<value id="out" type="xp:file"/>
+		<value id="run" type="irc:run" help="The path to the run file to evaluate"/>
+		<xml id="qrels" type="irc:qrels" help="The relevance assessments"/>
+		<value id="out" type="xp:file" help="The output file" optional="true"/>
 	</inputs>,
 	
 
 	run: function(o) {
 	
-		var command = [irc_bin.toString(), "evaluate",
-			o.qrels.@type,
-			o.qrels.path,
-			o.run.path,
-			">", 
-			o.out.@xp::value];
+		var outputPath = o.out ? o.out.@xp::value : o.run.@xp::value + ".eval";
+
+		xpm.log(o.toSource())
+		var command = [path(irc_bin), "evaluate", path(o.run.path), o.qrels.toSource()];
 		
-		// Run the evaluation - but wait first for the run resource to be generated
-		xpm.addCommandLineJob(out, command, [ run.@xp::resource, "READ_ACCESS" ]);
+		// Run the evaluation
+		var r = <evaluation xmlns={irc.uri} xmlns:xp={xp.uri}>
+				<xp:path>{o.out.@value}</xp:path>
+				{o.qrels}
+				{o.run}
+			</evaluation>;
+
+		scheduler.command_line_job(outputPath, command,
+			{ 
+				lock: [[ o.run.@xp::value, "READ_ACCESS" ]],
+				stdout: outputPath,
+				description: r
+			} 
+		);
 		
-		return <outputs>
-			<evaluation xmlns={irc.uri}>
-			</evaluation>
-		</outputs>;
+		return r;
 	}
 };
 

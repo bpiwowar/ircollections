@@ -14,8 +14,7 @@ from lxml.builder import E, ElementMaker
 import argparse
 import sys
 import os.path
-from os.path import dirname, normpath, join
-import traceback
+from os.path import join
 import tempfile
 import tarfile
 import gzip
@@ -28,10 +27,15 @@ import subprocess
 ########################
 
 # The main IR Collections directory
-ircdir=os.path.dirname(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
-ircnsNone = {None : "http://ircollections.sourceforge.net"}
-ircns = { "irc": "http://ircollections.sourceforge.net" }
-E = ElementMaker(namespace="http://ircollections.sourceforge.net", nsmap=ircnsNone)
+ircdir = os.path.dirname(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
+
+xpns = "http://experimaestro.sf.net"
+ircns = "http://ircollections.sourceforge.net"
+
+ircNamespaces = {"irc": ircns, "xp": xpns}
+
+ircnsNone = {None: ircns, "xp": xpns}
+XML = ElementMaker(namespace=ircns, nsmap=ircnsNone)
 
 
 #########################
@@ -41,7 +45,7 @@ E = ElementMaker(namespace="http://ircollections.sourceforge.net", nsmap=ircnsNo
 ## {{{ http://code.activestate.com/recipes/552732/ (r1)
 def rm_rf(d):
     log("Removing directory %s" % d)
-    for path in (os.path.join(d,f) for f in os.listdir(d)):
+    for path in (os.path.join(d, f) for f in os.listdir(d)):
         if os.path.isdir(path):
             rm_rf(path)
         else:
@@ -55,19 +59,19 @@ def log(message):
     sys.stderr.write("\n")
 
 
-
 def find(task, name):
     """ Find the first task ancestor that has an element of a given name
     """
-    l = task.xpath("ancestor-or-self::irc:task[irc:%s][1]/irc:%s" % (name, name), namespaces=ircns)
-    if len(l) == 0: raise Exception("Could not find a definition for task '%s'" % (name))
+    l = task.xpath("ancestor-or-self::irc:task[irc:%s][1]/irc:%s" % (name, name), namespaces=ircNamespaces)
+    if len(l) == 0:
+        raise Exception("Could not find a definition for task '%s'" % (name))
     return l[0]
 
 
 def findDefinition(definitions, id, parentType, type):
     """Find a definition for a given id and type
         A definition is an XML element
-        
+
         definitions -- The parsed source XML documents
         parentType -- The type of the parent XML element
         type -- The type of the defintion XML element
@@ -75,11 +79,13 @@ def findDefinition(definitions, id, parentType, type):
     """
     xpathStr = "//irc:%s/irc:%s[@id='%s']" % (parentType, type, id)
     el = []
-    for doc,priority in definitions:
-        el = el + doc.xpath(xpathStr, namespaces=ircns)
-        
-    if len(el) == 0: raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
-    if len(el) > 1: raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
+    for doc, priority in definitions:
+        el = el + doc.xpath(xpathStr, namespaces=ircNamespaces)
+
+    if len(el) == 0:
+        raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
+    if len(el) > 1:
+        raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
     el = el[0]
 
     # Look for an alias
@@ -90,40 +96,45 @@ def findDefinition(definitions, id, parentType, type):
         # ... and append ourselves to the end
         a.append(el)
         return a
-        
+
     priorities = {}
-    
+
     # Look at patterns
-    patternPath="//irc:%s/irc:%s[@pattern]" % (parentType, type)
-    for doc,priority in definitions:
+    patternPath = "//irc:%s/irc:%s[@pattern]" % (parentType, type)
+    for doc, priority in definitions:
         for e in xpath(doc, patternPath):
             if re.match(e.get("pattern"), el.get("id")):
                 # If we have a pattern match, we merge the elements
                 # (1) Attributes [but pattern]
-                for k,v in e.attrib.iteritems():
+                for k, v in e.attrib.iteritems():
                     if not (k == "pattern") and ((el.get(k) is None) or (priorities.get(k, 0) < priority)):
                         el.set(k, v)
                         priorities[k] = priority
 
                 # (2) Elements
-                for l in e: el.append(l)
+                for l in e:
+                    el.append(l)
 
     # print(etree.tostring(el, pretty_print=True))
 
     return [el]
 
+
 def absolutePath(*args):
     """Returns the absolute path of a path relative to the IR collections base directory"""
     return os.path.join(ircdir, os.path.join(*args))
 
+
 def xpath(node, path):
     """Run XPath query with predefined irc namespace"""
-    return node.xpath(path, namespaces = ircns)
+    return node.xpath(path, namespaces=ircNamespaces)
+
 
 def xpath1(node, path):
     """Get the first item returned by an XPath"""
-    n = node.xpath(path, namespaces = ircns)
-    if len(n) > 0: return n[0]
+    n = node.xpath(path, namespaces=ircNamespaces)
+    if len(n) > 0:
+        return n[0]
     return None
 
 
@@ -133,36 +144,39 @@ def xpath1(node, path):
 
 class Tasks():
     def __init__(self, dir):
-        self.definitions = [];
+        self.definitions = []
         # Loop over pairs of (filepath, priority [higher better])
-        for xmlfile in [ [os.path.join(dir,os.path.join("etc", "tasks.xml")), 0], 
-                         [os.path.join(dir,os.path.join("etc", "local.xml")), 10] ]:
-            try: self.definitions.append([etree.parse(xmlfile[0]), xmlfile[1]])
-            except etree.XMLSyntaxError as e: 
+        for xmlfile in [[os.path.join(dir, os.path.join("etc", "tasks.xml")), 0],
+                        [os.path.join(dir, os.path.join("etc", "local.xml")), 10]]:
+            try:
+                self.definitions.append([etree.parse(xmlfile[0]), xmlfile[1]])
+            except etree.XMLSyntaxError as e:
                 print "Cannot parse the XML file"
                 print e.error_log
                 sys.exit(-1)
 
-        
-        # Pre-compute the list of available tasks 
+        # Pre-compute the list of available tasks
         # and get their corresponding XML node
         self.tasks = {}
-        for doc,priority in self.definitions:
+        for doc, priority in self.definitions:
             for e in xpath(doc, '//irc:task[not(@abstract)]'):
                 name = None
                 for p in xpath(e, "ancestor-or-self::irc:task"):
-                    if name is None: name = p.get("name")
-                    else: name = "%s/%s" % (name, p.get("name"))
-                self.tasks[name] =  e
-        
+                    if name is None:
+                        name = p.get("name")
+                    else:
+                        name = "%s/%s" % (name, p.get("name"))
+                self.tasks[name] = e
+
     def getAllTasks(self):
         """ Get the list of all non abstract tasks
         """
         return self.tasks
-        
+
     def getTask(self, id):
         task = self.tasks.get(id)
-        if task is None: raise Exception("No task [%s] can be found"%id)
+        if task is None:
+            raise Exception("No task [%s] can be found" % id)
         return Task(self.definitions, task)
 
 
@@ -178,15 +192,20 @@ class Documents:
         self.aliased_from = None
         if len(collection) > 1:
             self.aliased_from = collection[-1].get("id")
-        
+
         self.collection = collection[0]
         self.type = self.collection.get("type")
         self.id = id
 
         ref = self.collection.get("ref")
-        if ref is None: self.ref = []
-        else: self.ref = ref.split(" ")
-        
+        self.subcollections = []
+        if ref is None:
+            self.ref = []
+        else:
+            self.ref = ref.split(" ")
+            for ref in self.ref:
+                self.subcollections.append(Documents(doc, ref))
+
         # Sets the base path for the collection (attribute basepath)
         self.basepath = self.collection.get("basepath")
         if self.basepath is None:
@@ -204,10 +223,18 @@ class Documents:
 
     def toXML(self):
         path = absolutePath("data", "irc.cols", self.id)
-        xml = E.documents(type=self.type, path=path, id=self.id)
-        if self.compression is not None: xml.set("compression", self.compression)
+        xml = XML.documents(type=self.type, id=self.id)
+        xml.set("{%s}path" % xpns, path)
+        if self.compression is not None:
+            xml.set("compression", self.compression)
+
+        # Process references
+        for subcollection in self.subcollections:
+            xml.append(subcollection.toXML())
+
         return xml
-        
+
+
 class Topics:
     def __init__(self, doc, id):
         self.id = id
@@ -219,17 +246,19 @@ class Topics:
         self.path = topics.get("path")
         if self.path is None:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "topics")
-        self.path = absolutePath("data", self.path)    
-        
+        self.path = absolutePath("data", self.path)
+
         self.url = xpath1(topics, "irc:url")
         self.type = topics.get("type")
         self.compression = topics.get("compression")
         self.replace = xpath(topics, "irc:replace")
 
     def toXML(self):
-        xml = E.topics(path=self.path, id=self.id, type=self.type)
+        xml = XML.topics(id=self.id, type=self.type)
+        xml.set("{%s}path" % xpns, self.path)
         return xml
-    
+
+
 class Assessments:
     """This represents Assessments
     """
@@ -238,49 +267,52 @@ class Assessments:
         qrels = findDefinition(doc, id, "assessments", "qrels")[0]
         if qrels is None:
             raise Exception("Could not find assessments with id [%s]" % id)
-        
-        self.path =  qrels.get("path")
+
+        self.path = qrels.get("path")
         if self.path is None:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "qrels")
-        self.path = absolutePath("data", self.path)    
-        
+        self.path = absolutePath("data", self.path)
+
         self.url = xpath1(qrels, "irc:url")
         self.type = qrels.get("type")
         if self.type is None:
             raise Exception("Type for assessments %s is not defined" % id)
         self.replace = xpath(qrels, "irc:replace")
-        
+
     def restrict(self, documents):
         self.documents = documents
         self.origPath = self.path
         self.path = "%s.R.%s" % (self.path, documents.id)
         self.id = "%s@%s" % (self.id, documents.id)
-        
+
     def toXML(self):
-        return E.qrels(path=self.path, id=self.id, type=self.type)
+        xml = XML.qrels(id=self.id, type=self.type)
+        xml.set("{%s}path" % xpns, self.path)
+        return xml
 
     def filter(self, inpath, outpath):
         log("Filtering assessments for sub-collection %s" % self.documents.id)
         pattern = xpath1(self.documents.collection, "irc:document").get("pattern")
         m = re.compile(pattern)
-        
+
         if self.type == "trec":
             self.filter_trec(m, inpath, outpath)
-        else: 
+        else:
             raise Exception("Cannot filter assessments of type %s" % self.type)
-            
+
     def filter_trec(self, m, inpath, outpath):
         tmp = "%s.tmp" % outpath
-        
+
         f = file(tmp, "w")
         for line in file(inpath, "r"):
-            filename=line.split(" ")[2]
-            if m.match(filename): 
+            filename = line.split(" ")[2]
+            if m.match(filename):
                 f.write(line)
         f.close()
-        
+
         shutil.move(tmp, outpath)
-        
+
+
 class Task():
     """Object representing a set task
     """
@@ -288,26 +320,26 @@ class Task():
         self.documents = Documents(doc, find(xml, "collection").text)
         self.assessments = Assessments(doc, find(xml, "qrels").text)
         self.topics = Topics(doc, find(xml, "topics").text)
-    
+
     def toXML(self):
-        root = E.task(
+        root = XML.task(
             self.documents.toXML(),
             self.topics.toXML(),
             self.assessments.toXML()
         )
         return root
-        
 
     def restrict(self, doc, docsid):
         if not docsid in self.documents.ref:
             log("Available: %s" % self.documents.ref)
             raise Exception("No [%s] sub-collection" % docsid)
-            
+
         self.documents = Documents(doc, docsid)
-        if self.documents is None: raise Exception("Could not find documents [%s]" % docsid)
-        
+        if self.documents is None:
+            raise Exception("Could not find documents [%s]" % docsid)
+
         self.assessments.restrict(self.documents)
-        
+
 
 ############
 ### List ###
@@ -324,7 +356,8 @@ def command_list(opts):
     maxLen = 0
     for e in tasks.keys():
         l = len(e)
-        if maxLen < l: maxLen = l
+        if maxLen < l:
+            maxLen = l
 
     f = "%%-%ds %%s" % (maxLen + 3)
     for name, e in sorted(tasks.iteritems()):
@@ -334,44 +367,38 @@ def command_list(opts):
 ### Information #
 #################
 
+
 def command_info(args):
     print("%30s\t%s" % ("Main directory", args.dir))
-    print("%30s\t%s" % ("Global configuration", os.path.join(args.dir,os.path.join("etc", "tasks.xml"))))
-    print("%30s\t%s" % ("Location configuration", os.path.join(args.dir,os.path.join("etc", "local.xml"))))
-
+    print("%30s\t%s" % ("Global configuration", os.path.join(args.dir, os.path.join("etc", "tasks.xml"))))
+    print("%30s\t%s" % ("Location configuration", os.path.join(args.dir, os.path.join("etc", "local.xml"))))
 
 
 ################
 ### Evaluate ###
 ################
-
-
 def find_bin(cmd):
     # Check the bin directory
-    path=join(ircdir, "bin", cmd)
-    if os.path.exists(path): return path
-    
+    path = join(ircdir, "bin", cmd)
+    if os.path.exists(path):
+        return path
+
     # Otherwise, we assume it is in the PATH
     return cmd
-    
+
 
 def command_evaluate(opts):
-    tasks = Tasks(opts.dir)
-    taskid = opts.task
-    task= tasks.getTask(taskid)
-    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
-    
-    run = opts.run
-    
-    qtype=argv.pop(0)
-    qrels=argv.pop(0)
-    runfile=argv.pop(0)
-    
-    if qtype == "trec":
+    qrels = etree.fromstring(opts.assessments)
+    runfile = opts.run
+
+    if qrels.get("type") == "trec":
         trec_eval = find_bin("trec_eval")
-        subprocess.call([trec_eval, qrels, runfile], stdout=sys.stdout, stderr=sys.stderr)
-    else: raise Exception("Cannot evaluate qrels with type %s", qtype)
-    
+        command = [trec_eval, qrels.get("path"), runfile]
+        print(command)
+        subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
+    else:
+        raise Exception("Cannot evaluate qrels with type %s", qrels.get("type"))
+
 
 ###########
 ### Get ###
@@ -380,9 +407,10 @@ def command_evaluate(opts):
 def command_get(opts):
     tasks = Tasks(opts.dir)
     taskid = opts.task
-    task= tasks.getTask(taskid)
-    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
-    
+    task = tasks.getTask(taskid)
+    if opts.restrict:
+        task.restrict(tasks.definitions, opts.restrict)
+
     print(etree.tostring(task.toXML(), pretty_print=True))
 
 ###############
@@ -393,21 +421,20 @@ def command_get(opts):
 def command_prepare(opts):
     tasks = Tasks(opts.dir)
     taskid = opts.task
-    task= tasks.getTask(taskid)
-    if opts.restrict: task.restrict(tasks.definitions, opts.restrict)
-    
-    definitions = tasks.definitions
-    
+    task = tasks.getTask(taskid)
+    if opts.restrict:
+        task.restrict(tasks.definitions, opts.restrict)
+
     # --- Process documents
-    
-    documents = task.documents    
+
+    documents = task.documents
     basepath = documents.getBasePath()
     docfile = os.path.join(absolutePath("data", "irc.cols"), "%s" % documents.id)
     if not os.path.isfile(docfile):
-        input = file(documents.getRelFiles(),"r")
-        
+        input = file(documents.getRelFiles(), "r")
+
         tmpdocfile = docfile + ".tmp"
-        out = file(tmpdocfile,"w")
+        out = file(tmpdocfile, "w")
         log("Generating the collection file [%s]" % docfile)
         for line in input.readlines():
             line = line.strip()
@@ -421,21 +448,23 @@ def command_prepare(opts):
         out.close()
         input.close()
         shutil.move(tmpdocfile, docfile)
-    
+
     # --- Get topics and assessments
-    
-    for k,info2 in { "topics": [task.topics, opts.download_topics], "qrels": [task.assessments, opts.download_assessments] }.iteritems():
+
+    for k, info2 in {"topics": [task.topics, opts.download_topics], "qrels": [task.assessments, opts.download_assessments]}.iteritems():
         info = info2[0]
         force = info2[1]
-        
+
         type = info.url.get("type")
         url = info.url.text
         # Get the downloading scheme, fallback on plain text
         f = downloadSchemes.get(type, downloadSchemes.get("plain"))
-            
-        if hasattr(info, "origPath") and not info.origPath is None: path = absolutePath(info.origPath)
-        else: path = absolutePath(info.path)
-            
+
+        if hasattr(info, "origPath") and not info.origPath is None:
+            path = absolutePath(info.origPath)
+        else:
+            path = absolutePath(info.path)
+
         if not os.path.exists(path) or force:
             log("Downloading %s %s into [%s]..." % (k, info.id, path))
             createBaseDir(path)
@@ -443,61 +472,62 @@ def command_prepare(opts):
                 f[0](path, url, f[1:])
             else:
                 # Replace with regular expressions
-                origPath = path
-                tmpPath=tempfile.NamedTemporaryFile(delete=True)
+                tmpPath = tempfile.NamedTemporaryFile(delete=True)
                 print tmpPath.name
                 f[0](tmpPath.name, url, f[1:])
 
-                patterns = [ [re.compile(r.get("pattern")), r.get("with")] for r in info.replace]
-                
-                tmpPath2=tempfile.NamedTemporaryFile(delete=False)
+                patterns = [[re.compile(r.get("pattern")), r.get("with")] for r in info.replace]
+
+                tmpPath2 = tempfile.NamedTemporaryFile(delete=False)
                 out = open(tmpPath2.name, 'w')
                 for line in open(tmpPath.name, 'r'):
-                    for p in patterns: 
+                    for p in patterns:
                         line = p[0].sub(p[1], line)
                     out.write(line)
                 out.close()
-                
+
                 shutil.move(tmpPath2.name, path)
-                
-                
+
         # Restrict if needed by filtering
         if hasattr(info, "origPath"):
             path2 = absolutePath(info.path)
             if not os.path.exists(path2):
                 createBaseDir(path2)
                 info.filter(path, path2)
-                
+
     # --- Everything OK, print
     print(etree.tostring(task.toXML(), pretty_print=True))
-    
-    
+
+
 def createBaseDir(path):
-    dir=os.path.dirname(path)
-    if not os.path.isdir(dir): 
+    dir = os.path.dirname(path)
+    if not os.path.isdir(dir):
         log("Creating directory %s" % dir)
         os.makedirs(dir)
+
 
 def getTarGZFile(path, url, args):
     """Download QRELS as a set of gzipped files in a tar.gz archive
     """
-    tmpdir=None
+    tmpdir = None
     try:
         # Temporary directory
-        tmpdir=tempfile.mkdtemp()
-        tmpfile="%s/file.dl" % tmpdir
+        tmpdir = tempfile.mkdtemp()
+        tmpfile = "%s/file.dl" % tmpdir
         urllib.urlretrieve(url, tmpfile)
-        d= "%s/all" % tmpdir
+        d = "%s/all" % tmpdir
         tarfile.open(tmpfile).extractall(path="%s/all" % tmpdir)
         f_out = open("%s/qrels" % tmpdir, 'w')
-        for aPath in (os.path.join(d,f) for f in os.listdir(d)):
+        for aPath in (os.path.join(d, f) for f in os.listdir(d)):
             log("Uncompressing %s" % aPath)
-            if args[0]: gzf = gzip.open(aPath)
-            else: gzf = file(aPath)
+            if args[0]:
+                gzf = gzip.open(aPath)
+            else:
+                gzf = file(aPath)
             f_out.writelines(gzf)
             gzf.close()
         f_out.close()
-        
+
         # Move in place
         shutil.move("%s/qrels" % tmpdir, path)
         log("Created file %s" % path)
@@ -505,14 +535,15 @@ def getTarGZFile(path, url, args):
         if not tmpdir is None:
             rm_rf(tmpdir)
 
+
 def getGZFile(path, url, args):
     """Get a GZIPPED file over the network and uncompress it
     """
-    gzfile=tempfile.NamedTemporaryFile(delete=True)
+    gzfile = tempfile.NamedTemporaryFile(delete=True)
     urllib.urlretrieve(url, gzfile.name)
 
     # Uncompress
-    file=tempfile.NamedTemporaryFile(delete=True)
+    file = tempfile.NamedTemporaryFile(delete=True)
     f = gzip.open(gzfile.name, mode="r")
     file.writelines(f)
     f.close()
@@ -521,37 +552,44 @@ def getGZFile(path, url, args):
     log("Uncompressed in %s" % file.name)
     shutil.move(file.name, path)
     log("Created file %s" % path)
-    try: file.close()
-    except: pass
-    try: gzfile.close()
-    except: pass
+    try:
+        file.close()
+    except:
+        pass
+    try:
+        gzfile.close()
+    except:
+        pass
+
 
 def getPlainFile(path, url, args):
     """Get a plain text file
     """
-    tmpFile=tempfile.NamedTemporaryFile(delete=False)
+    tmpFile = tempfile.NamedTemporaryFile(delete=False)
     log("Download in %s" % tmpFile.name)
     urllib.urlretrieve(url, tmpFile.name)
     log("Moving in %s" % path)
     shutil.move(tmpFile.name, path)
 
 
-# List of download schemes  
+# List of download schemes
 downloadSchemes = {
-    "tar.gz#gz" : [getTarGZFile, True],
-    "tar.gz" : [getTarGZFile, False],
-    "gz" : [getGZFile],
-    "plain" : [getPlainFile]
+    "tar.gz#gz": [getTarGZFile, True],
+    "tar.gz": [getTarGZFile, False],
+    "gz": [getGZFile],
+    "plain": [getPlainFile]
 }
 
 ############
 ### Main ###
 ############
 
+
 class IRCException():
     def __init__(self):
         pass
-    
+
+
 def main(dir, argv):
     # create the top-level parser
     parser = argparse.ArgumentParser(description='IR collections script.')
@@ -561,7 +599,7 @@ def main(dir, argv):
     # Informations
     subparsers.add_parser("info", help="Information about ircollections")
 
-    # list 
+    # list
     parser_list = subparsers.add_parser("list", help="List the tasks")
 
     parser_list.add_argument("--full", "-f", dest="full", action="store_true", help="Prints a full list (otherwise print first level)")
@@ -572,27 +610,28 @@ def main(dir, argv):
     parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
     parser_prepare.add_argument("--download-assessments", dest="download_assessments", action="store_true", help="Force downloading assessments")
     parser_prepare.add_argument("--download-topics", dest="download_topics", action="store_true", help="Force downloading topics")
-    
+
     parser_get = subparsers.add_parser("get", help="Get a task")
 
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
 
-    for p in [parser_get, parser_prepare, parser_evaluate]:
+    for p in [parser_get, parser_prepare]:
         p.add_argument("--restrict", help="Restrict to a sub-collection")
         p.add_argument("task", help="The task name")
-        
+
     parser_evaluate.add_argument("run", help="The run file to evaluate")
-    
+    parser_evaluate.add_argument("assessments", help="The XML description of the assessments (as returned by ircollections)")
+
     args = parser.parse_args()
-    try: 
-        fname = "command_%s" % args.command.replace("-","_");
+    try:
+        fname = "command_%s" % args.command.replace("-", "_")
         f = globals()[fname]
         f(args)
     except IRCException as e:
         print "Error while running command %s:" % args.command
         print e
 
-    
+
 # ---- MAIN ----
 
 if __name__ == "__main__":
