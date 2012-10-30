@@ -55,10 +55,10 @@
         <collection id="trec.ziff2"/>
         <collection id="trec.ziff23"/>
         <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12"/>
-        <collection id="trec.4.adhoc" ref="ap8890 fr88 sjm1 usp93 wsj9092 ziff23" path="cols/trec4.col.files"/>
-        <collection id="trec.5.adhoc" ref="ap88 cr1 fr8894 ft1 wsj9092 ziff2" path="cols/trec5.col.files"/>
-        <collection id="trec.6.adhoc" ref="cr1 fbis1 fr94 ft1 la8990"/>
-        <collection id="trec.7.adhoc" ref="fbis1 fr94 ft1 la8990"/>
+        <collection id="trec.4.adhoc" ref="trec.ap8890 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff23" path="cols/trec4.col.files"/>
+        <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr8894 trec.ft1 trec.wsj9092 trec.ziff2" path="cols/trec5.col.files"/>
+        <collection id="trec.6.adhoc" ref="trec.cr1 trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
+        <collection id="trec.7.adhoc" ref="trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         <!-- The TREC web files -->
         <collection id="trec.wt10g" type="trec.web"/>
         <collection id="trec.dotgov" type="trec.web"/>
