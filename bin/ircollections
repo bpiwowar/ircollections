@@ -9,7 +9,7 @@
 
 import urllib
 from lxml import etree
-from lxml.builder import E, ElementMaker
+from lxml.builder import ElementMaker
 
 import argparse
 import sys
@@ -221,6 +221,13 @@ class Documents:
     def getBasePath(self):
         return self.basepath
 
+    def collections(self):
+        """Iterates over all collections"""
+        yield self
+        for sc in self.subcollections:
+            for c in sc.collections():
+                yield c
+
     def toXML(self):
         path = absolutePath("data", "irc.cols", self.id)
         xml = XML.documents(type=self.type, id=self.id)
@@ -427,27 +434,28 @@ def command_prepare(opts):
 
     # --- Process documents
 
-    documents = task.documents
-    basepath = documents.getBasePath()
-    docfile = os.path.join(absolutePath("data", "irc.cols"), "%s" % documents.id)
-    if not os.path.isfile(docfile):
-        input = file(documents.getRelFiles(), "r")
 
-        tmpdocfile = docfile + ".tmp"
-        out = file(tmpdocfile, "w")
-        log("Generating the collection file [%s]" % docfile)
-        for line in input.readlines():
-            line = line.strip()
-            path = os.path.join(basepath, line)
-            if opts.check_files and not os.path.exists(path):
-                out.close()
-                input.close()
-                os.remove(tmpdocfile)
-                raise Exception("File [%s] does not exist - aborting" % path)
-            out.write(path + "\n")
-        out.close()
-        input.close()
-        shutil.move(tmpdocfile, docfile)
+    for documents in task.documents.collections():
+        basepath = documents.getBasePath()
+        docfile = os.path.join(absolutePath("data", "irc.cols"), "%s" % documents.id)
+        if not os.path.isfile(docfile):
+            input = file(documents.getRelFiles(), "r")
+
+            tmpdocfile = docfile + ".tmp"
+            out = file(tmpdocfile, "w")
+            log("Generating the collection file [%s]" % docfile)
+            for line in input.readlines():
+                line = line.strip()
+                path = os.path.join(basepath, line)
+                if opts.check_files and not os.path.exists(path):
+                    out.close()
+                    input.close()
+                    os.remove(tmpdocfile)
+                    raise Exception("File [%s] does not exist - aborting" % path)
+                out.write(path + "\n")
+            out.close()
+            input.close()
+            shutil.move(tmpdocfile, docfile)
 
     # --- Get topics and assessments
 
