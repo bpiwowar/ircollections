@@ -5,11 +5,12 @@
 
 */
 
-var script_path = xpm.get_script_path();
-var irc_dir = java.io.File(script_path).getParentFile().getParentFile();
-xpm.log("IR collections directory is %s", irc_dir);
+var irc_dir = xpm.get_script_file().get_ancestor(2);
+var logger = xpm.logger("net.sf.ircollections");
 
-var irc_bin = java.io.File(java.io.File(irc_dir,"bin"), "ircollections");
+logger.info("IR collections directory is %s", irc_dir);
+
+var irc_bin = irc_dir.path("bin", "ircollections");
 
 var irc = new Namespace("http://ircollections.sourceforge.net");
 
@@ -54,25 +55,28 @@ var ircollections = {
                            
     // Creates a new instance of this experiment
 	run: function(inputs) { 
-		var task_id = inputs.id.@xp::value;
-		xpm.log("IR task is [%s]", task_id);
+		var task_id = inputs.id.@value;
+		logger.info("IR task is [%s]", task_id);
 
 		args= [path(irc_bin), inputs.command.@value];
 		if (inputs.restrict) 
-			args = args.concat("--restrict", inputs.restrict.@xp::value);
+			args = args.concat("--restrict", inputs.restrict.@value);
 					
 		// Run ircollections 
 		var command = args.concat(task_id);
+	
+		logger.debug("arguments are %s; output=", command.toSource());
+
 		output = xpm.evaluate(command);
-		
 		
 		// Get the output
 		if (output[0] != 0) 
 			throw "Error while running get-task: error code is " 
 				+ output[0] + ", command was [" + command.toString() + "]";
 		
-		
-		r = new XML(output[1]);	
+
+		r = new XML(output[1].trim());	
+		logger.debug("Returning %s", r);
 		
 		return r;
 	}
@@ -98,7 +102,7 @@ var task_evaluate = {
 	</>,
 
 	inputs: <inputs xmlns:irc={irc}>
-		<value id="run" type="irc:run" help="The path to the run file to evaluate"/>
+		<xml id="run" type="irc:run" help="The path to the run file to evaluate"/>
 		<xml id="qrels" type="irc:qrels" help="The relevance assessments"/>
 		<value id="out" type="xp:file" help="The output file" optional="true"/>
 	</inputs>,
@@ -106,7 +110,7 @@ var task_evaluate = {
 
 	run: function(o) {
 	
-		var outputPath = o.out ? o.out.@xp::value : o.run.@xp::value + ".eval";
+		var outputPath = o.out ? o.out.@value : o.run.@value + ".eval";
 
 		xpm.log(o.toSource())
 		var command = [path(irc_bin), "evaluate", path(o.run.path), o.qrels.toSource()];
@@ -118,9 +122,9 @@ var task_evaluate = {
 				{o.run}
 			</evaluation>;
 
-		scheduler.command_line_job(outputPath, command,
+		xpm.command_line_job(outputPath, command,
 			{ 
-				lock: [[ o.run.@xp::value, "READ_ACCESS" ]],
+				lock: [[ o.run.@value, "READ_ACCESS" ]],
 				stdout: outputPath,
 				description: r
 			} 
