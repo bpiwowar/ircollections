@@ -87,7 +87,7 @@ def findDefinition(definitions, id, parentType, type):
     if len(el) > 1:
         raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
     el = el[0]
-
+    
     # Look for an alias
     alias = el.get("alias")
     if not alias is None:
@@ -212,6 +212,8 @@ class Documents:
             self.basepath = absolutePath("data", "irc.docs", self.id)
 
         self.compression = self.collection.get("compression")
+        self.suffix = self.collection.get("suffix")
+        if self.suffix is None: self.suffix = ""
 
     def getRelFiles(self):
         if self.aliased_from is None:
@@ -432,13 +434,11 @@ def command_prepare(opts):
     if opts.restrict:
         task.restrict(tasks.definitions, opts.restrict)
 
-    # --- Process documents
-
-
+    # --- Generate collection
     for documents in task.documents.collections():
         basepath = documents.getBasePath()
         docfile = os.path.join(absolutePath("data", "irc.cols"), "%s" % documents.id)
-        if not os.path.isfile(docfile):
+        if not os.path.isfile(docfile) or opts.generate_collection:
             input = file(documents.getRelFiles(), "r")
 
             tmpdocfile = docfile + ".tmp"
@@ -446,7 +446,7 @@ def command_prepare(opts):
             log("Generating the collection file [%s]" % docfile)
             for line in input.readlines():
                 line = line.strip()
-                path = os.path.join(basepath, line)
+                path = os.path.join(basepath, "%s%s" % (line, documents.suffix))
                 if opts.check_files and not os.path.exists(path):
                     out.close()
                     input.close()
@@ -618,6 +618,7 @@ def main(dir, argv):
     parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
     parser_prepare.add_argument("--download-assessments", dest="download_assessments", action="store_true", help="Force downloading assessments")
     parser_prepare.add_argument("--download-topics", dest="download_topics", action="store_true", help="Force downloading topics")
+    parser_prepare.add_argument("--generate-collection", dest="generate_collection", action="store_true", help="Force generating collection file")
 
     parser_get = subparsers.add_parser("get", help="Get a task")
 
