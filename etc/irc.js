@@ -30,7 +30,8 @@ var module_irc = {
 	</p>
 };
 
-xpm.add_module(module_irc);
+module = xpm.add_module(module_irc);
+module.add_schema(irc_dir.path("etc","irc.rnc"));
 
 // --- This task
 var ircollections = {
@@ -110,25 +111,24 @@ var task_evaluate = {
 
 	run: function(o) {
 	
-		var outputPath = o.out ? o.out.@value : o.run.@value + ".eval";
+		var outputPath = xpm.file(o.out ? o.out.@value : o.run.@value + ".eval");
 
-		xpm.log(o.toSource())
-		var command = [path(irc_bin), "evaluate", path(o.run.path), o.qrels.toSource()];
+		var command = [path(irc_bin), "evaluate", file(o.run.@xp::path), o.qrels.toSource()];
 		
+		var rsrc = xpm.command_line_job(outputPath, command,
+			{ 
+				lock: [[ o.run.@xp::resource, "READ_ACCESS" ]],
+				stdout: outputPath,
+				description: r 
+			} 
+		);
+
 		// Run the evaluation
-		var r = <evaluation xmlns={irc.uri} xmlns:xp={xp.uri}>
-				<xp:path>{o.out.@value}</xp:path>
+		var r = <evaluation xmlns={irc.uri} xmlns:xp={xp.uri} xp:path={outputPath} xp:resource={rsrc}>
 				{o.qrels}
 				{o.run}
 			</evaluation>;
 
-		xpm.command_line_job(outputPath, command,
-			{ 
-				lock: [[ o.run.@value, "READ_ACCESS" ]],
-				stdout: outputPath,
-				description: r
-			} 
-		);
 		
 		return r;
 	}

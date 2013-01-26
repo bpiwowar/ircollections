@@ -1,15 +1,20 @@
 default namespace = "http://ircollections.sourceforge.net"
+namespace xp = "http://experimaestro.lip6.fr"
 
-element task {
-
-  ## Describes an XML collection
-  element documents { 
+## Describes an XML collection
+document = element documents { 
      ## The ID of this document collection
      attribute id { text },
      attribute aliased-from { text }?,
      attribute type { "trec" | "inex" },
-     attribute path { text }
-  },
+     attribute xp:path { text },
+     ## A document can contain several other documents
+     document*
+}
+
+task = element task {
+
+    document*,
 
   ## Describes the topics  
   element topics { 
@@ -19,18 +24,19 @@ element task {
      attribute type { "trec" | "inex" },
      # The path to the file (or directory, depending on the format)
      # containing the topics
-     attribute path { text }
+     attribute xp:path { text }
   },
  
  ## Describes the relevance asssessments
  element qrels { 
      attribute id { text },
      attribute type { "trec" | "trec.subtopic" | "inex" | "inex.trec" },
-     attribute path { text }
+     attribute xp:path { text }
  }
  
 }
-
-element run {
-  
+ 
+run = element run {
+    attribute xp:path { text }
 }
+

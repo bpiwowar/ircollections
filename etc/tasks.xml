@@ -39,9 +39,14 @@
         
     
         <collection id="trec.cr1"/>
-        <collection id="trec.doe1"/>
+        <collection id="trec.doe1">
+            <document pattern="^DOE.*$"/>
+        </collection>
+        
         <collection id="trec.fbis1"/>
-        <collection id="trec.fr88"/>
+        <collection id="trec.fr88">
+            <document pattern="^FR88.*$"/>
+        </collection>
         <collection id="trec.fr8889"/>
         <collection id="trec.fr8894"/>
         <collection id="trec.fr94"/>
@@ -49,8 +54,12 @@
         <collection id="trec.la8990"/>
         <collection id="trec.sjm1"/>
         <collection id="trec.usp93"/>
-        <collection id="trec.wsj8792"/>
-        <collection id="trec.wsj9092"/>
+        <collection id="trec.wsj8792">
+            <document pattern="^WSJ87.*$"/>
+        </collection>
+        <collection id="trec.wsj9092">
+            <document pattern="^WSJ90.*$"/>
+        </collection>
         <collection id="trec.ziff12"/>
         <collection id="trec.ziff2"/>
         <collection id="trec.ziff23"/>

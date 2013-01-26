@@ -29,7 +29,7 @@ import subprocess
 # The main IR Collections directory
 ircdir = os.path.dirname(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
 
-xpns = "http://experimaestro.sf.net"
+xpns = "http://experimaestro.lip6.fr"
 ircns = "http://ircollections.sourceforge.net"
 
 ircNamespaces = {"irc": ircns, "xp": xpns}
@@ -301,8 +301,10 @@ class Assessments:
 
     def filter(self, inpath, outpath):
         log("Filtering assessments for sub-collection %s" % self.documents.id)
-        pattern = xpath1(self.documents.collection, "irc:document").get("pattern")
-        m = re.compile(pattern)
+        doc = xpath1(self.documents.collection, "irc:document")
+        if doc is None or doc.get("pattern") is None:
+            raise Exception("There is no pattern to filter relevance assessments for subcollection %s" % self.documents.id)
+        m = re.compile(doc.get("pattern"))
 
         if self.type == "trec":
             self.filter_trec(m, inpath, outpath)
@@ -402,8 +404,10 @@ def command_evaluate(opts):
 
     if qrels.get("type") == "trec":
         trec_eval = find_bin("trec_eval")
-        command = [trec_eval, qrels.get("path"), runfile]
-        print(command)
+        qrels_path = qrels.get("{%s}path" % xpns)
+        if qrels_path is None:
+            raise Exception("Cannot retrieve the assessments path")
+        command = [trec_eval, qrels_path, runfile]
         subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
     else:
         raise Exception("Cannot evaluate qrels with type %s", qrels.get("type"))
