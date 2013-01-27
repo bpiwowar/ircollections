@@ -408,7 +408,8 @@ def command_evaluate(opts):
         if qrels_path is None:
             raise Exception("Cannot retrieve the assessments path")
         command = [trec_eval, qrels_path, runfile]
-        subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
+        code = subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
+        sys.exit(code)
     else:
         raise Exception("Cannot evaluate qrels with type %s", qrels.get("type"))
 
