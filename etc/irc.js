@@ -18,7 +18,6 @@ xpm.set_property("namespace", irc);
 
 
 
-
 var module_irc = {
 	name: "Information Retrieval Collections",
 	url: "http://ircollections.sourceforge.net",
@@ -33,11 +32,31 @@ var module_irc = {
 module = xpm.add_module(module_irc);
 module.add_schema(irc_dir.path("etc","irc.rnc"));
 
-// --- This task
-var ircollections = {
-	// The id
-	id: qname(irc, "get-task"),
-    
+
+// --- Get a task XML definition
+
+function get_task(p) { 
+	logger.info("IR task is [%s], restriction [%s]", p.id(), p.restrict());
+
+	args= [path(irc_bin), p.command()];
+	if (p.restrict()) 
+		args = args.concat("--restrict", p.restrict());
+					
+	// Run ircollections 
+	var command = args.concat(p.id());
+	
+	logger.debug("arguments are %s; output=", command.toSource());
+
+	output = xpm.evaluate(command);
+	// Get the output
+	if (output[0] != 0) 
+		throw "Error while running get-task: error code is " 
+			+ output[0] + ", command was [" + command.toString() + "]";
+		
+	return xml(output[1].trim());	
+}
+
+tasks("irc:get-task") = {
     module: module_irc.id,
     
 	// The description of this experiment
@@ -46,45 +65,17 @@ var ircollections = {
         the list of files, the topics, and the qrels</p>
     </>,
     
-    inputs: <inputs>
-    		   <value id="command" default="prepare" type="xs:string"/>
-               <value id="id" type="xs:string" help="The name of the IR task (e.g. trec.7/adhoc)"/>               
-               <value id="restrict" value-type="xs:string" help="Restrict to a subcollection" optional="true"/>
-			</inputs>,
+    inputs: {
+        command: { value: "xs:string", "default": "prepare"},
+        id: { value: "xs:string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
+        restrict: { value: "xs:string", help: "Restrict to a subcollection", optional: true }
+    },
 
     output: qname(irc, "task"),
-                           
-    // Creates a new instance of this experiment
-	run: function(inputs) { 
-		var task_id = inputs.id.@value;
-		logger.info("IR task is [%s]", task_id);
-
-		args= [path(irc_bin), inputs.command.@value];
-		if (inputs.restrict) 
-			args = args.concat("--restrict", inputs.restrict.@value);
-					
-		// Run ircollections 
-		var command = args.concat(task_id);
-	
-		logger.debug("arguments are %s; output=", command.toSource());
-
-		output = xpm.evaluate(command);
-		
-		// Get the output
-		if (output[0] != 0) 
-			throw "Error while running get-task: error code is " 
-				+ output[0] + ", command was [" + command.toString() + "]";
-		
-
-		r = new XML(output[1].trim());	
-		logger.debug("Returning %s", r);
-		
-		return r;
-	}
-	
+    
+    run: get_task
 };
 
-xpm.add_task_factory(ircollections);
 
 
 
@@ -102,22 +93,21 @@ var task_evaluate = {
 		<p>Evaluate a run</p>
 	</>,
 
-	inputs: <inputs xmlns:irc={irc}>
-		<xml id="run" type="irc:run" help="The path to the run file to evaluate"/>
-		<xml id="qrels" type="irc:qrels" help="The relevance assessments"/>
-		<value id="out" type="xp:file" help="The output file" optional="true"/>
-	</inputs>,
-	
+	inputs: {
+	    "run": { xml: "irc:run", help: "The path to the run file to evaluate" },
+        "qrels": { xml: "irc:qrels", help: "The relevance assessments" },
+        "out": { value: "xp:file", help: "The output file", optional: true }
+    },
 
-	run: function(o) {
+	run: function(p) {
 	
-		var outputPath = xpm.file(o.out ? o.out.@value : o.run.@value + ".eval");
+		var outputPath = p.out() ? p.out() : xpm.file(p.run() + ".eval");
 
-		var command = [path(irc_bin), "evaluate", file(o.run.@xp::path), o.qrels.toSource()];
+		var command = [path(irc_bin), "evaluate", file(p.run.path()), o.qrels.toSource()];
 		
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
-				lock: [[ o.run.@xp::resource, "READ_ACCESS" ]],
+				lock: [[ p.run.resource(), "READ_ACCESS" ]],
 				stdout: outputPath,
 				description: r 
 			} 
@@ -125,8 +115,8 @@ var task_evaluate = {
 
 		// Run the evaluation
 		var r = <evaluation xmlns={irc.uri} xmlns:xp={xp.uri} xp:path={outputPath} xp:resource={rsrc}>
-				{o.qrels}
-				{o.run}
+				{p.qrels.toE4X()}
+				{p.run.toE4X()}
 			</evaluation>;
 
 		
