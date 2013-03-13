@@ -103,7 +103,7 @@ var task_evaluate = {
 	
 		var outputPath = p.out() ? p.out() : xpm.file(p.run() + ".eval");
 
-		var command = [path(irc_bin), "evaluate", file(p.run.path()), o.qrels.toSource()];
+		var command = [path(irc_bin), "evaluate", file(p.run.path()), p.qrels.toSource()];
 		
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
