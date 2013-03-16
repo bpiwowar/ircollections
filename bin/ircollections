@@ -399,9 +399,15 @@ def find_bin(cmd):
 
 
 def command_evaluate(opts):
-    qrels = etree.fromstring(opts.assessments)
+    if opts.assessments:
+        qrels = etree.parse(opts.assessments)
+    else:
+        qrels = etree.parse(sys.stdin)
+        
+    qrels = qrels.getroot()
+        
     runfile = opts.run
-
+    
     if qrels.get("type") == "trec":
         trec_eval = find_bin("trec_eval")
         qrels_path = qrels.get("{%s}path" % xpns)
@@ -634,7 +640,7 @@ def main(dir, argv):
         p.add_argument("task", help="The task name")
 
     parser_evaluate.add_argument("run", help="The run file to evaluate")
-    parser_evaluate.add_argument("assessments", help="The XML description of the assessments (as returned by ircollections)")
+    parser_evaluate.add_argument("assessments", nargs="?", help="The XML description of the assessments (as returned by ircollections)")
 
     args = parser.parse_args()
     try:
