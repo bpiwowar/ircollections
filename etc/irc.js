@@ -38,7 +38,7 @@ module.add_schema(irc_dir.path("etc","irc.rnc"));
 function get_task(p) { 
 	logger.info("IR task is [%s], restriction [%s]", p.id(), p.restrict());
 
-	args= [path(irc_bin), p.command()];
+	args= [path(irc_bin), p.command(), "--json"];
 	if (p.restrict()) 
 		args = args.concat("--restrict", p.restrict());
 					
@@ -53,7 +53,7 @@ function get_task(p) {
 		throw "Error while running get-task: error code is " 
 			+ output[0] + ", command was [" + command.toString() + "]";
 		
-	return xml(output[1].trim());	
+	return JSON.parse(output[1].trim());	
 }
 
 tasks("irc:get-task") = {
@@ -66,9 +66,9 @@ tasks("irc:get-task") = {
     </>,
     
     inputs: {
-        command: { value: "xs:string", "default": "prepare"},
-        id: { value: "xs:string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
-        restrict: { value: "xs:string", help: "Restrict to a subcollection", optional: true }
+        command: { value: "xp:string", "default": "prepare"},
+        id: { value: "xp:string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
+        restrict: { value: "xp:string", help: "Restrict to a subcollection", optional: true }
     },
 
     output: qname(irc, "task"),
@@ -114,11 +114,13 @@ var task_evaluate = {
 		);
 
 		// Run the evaluation
-		var r = <evaluation xmlns={irc.uri} xmlns:xp={xp.uri} xp:path={outputPath} xp:resource={rsrc}>
-				{p.qrels.toE4X()}
-				{p.run.toE4X()}
-			</evaluation>;
-
+		var r = {
+            "xp:type": "irc:run",
+            resource: rsrc,
+		    path: outputPath,
+            run: p.run,
+            qrels: p.qrels
+		}
 		
 		return r;
 	}

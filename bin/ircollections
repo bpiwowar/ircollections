@@ -21,6 +21,7 @@ import gzip
 import shutil
 import re
 import subprocess
+import json
 
 ########################
 ### Global variables ###
@@ -58,6 +59,11 @@ def log(message):
     sys.stderr.write(message)
     sys.stderr.write("\n")
 
+def xppath(path):
+    return {
+        "{%s}type" % xpns: "{%s}file" % xpns,
+        "{%s}value" % xpns: path
+    }
 
 def find(task, name):
     """ Find the first task ancestor that has an element of a given name
@@ -243,6 +249,27 @@ class Documents:
 
         return xml
 
+    def toJSON(self):
+        subcollections = []
+        for subcollection in self.subcollections:
+            subcollections.append(subcollection.toJSON())
+
+        path = absolutePath("data", "irc.cols", self.id)
+            
+        json = {
+            "{%s}type" % xpns: "{%s}documents" % ircns,
+            "id": self.id,
+            "path": xppath(path),
+            "type": self.type,
+        }
+        if subcollections:
+            json["subcollections"] = subcollections
+
+        if self.compression is not None:
+            json["compression"] = self.compression
+        
+        return json
+
 
 class Topics:
     def __init__(self, doc, id):
@@ -261,6 +288,14 @@ class Topics:
         self.type = topics.get("type")
         self.compression = topics.get("compression")
         self.replace = xpath(topics, "irc:replace")
+
+    def toJSON(self):
+        return {
+            "{%s}type" % xpns: "{%s}topics" % ircns,
+            "id": self.id,
+            "path": xppath(self.path),
+            "type": self.type
+        }
 
     def toXML(self):
         xml = XML.topics(id=self.id, type=self.type)
@@ -298,6 +333,14 @@ class Assessments:
         xml = XML.qrels(id=self.id, type=self.type)
         xml.set("{%s}path" % xpns, self.path)
         return xml
+    
+    def toJSON(self):
+        return {
+            "{%s}type" % xpns: "{%s}qrels" % ircns,
+            "id": self.id,
+            "path": xppath(self.path),
+            "type": self.type
+        }
 
     def filter(self, inpath, outpath):
         log("Filtering assessments for sub-collection %s" % self.documents.id)
@@ -339,6 +382,14 @@ class Task():
             self.assessments.toXML()
         )
         return root
+        
+    def toJSON(self):
+        return {
+            ("{%s}type" % (xpns)): "{%s}task" % ircns,
+            "documents": self.documents.toJSON(),
+            "topics": self.topics.toJSON(),
+            "qrels": self.assessments.toJSON()
+        }
 
     def restrict(self, doc, docsid):
         if not docsid in self.documents.ref:
@@ -431,7 +482,10 @@ def command_get(opts):
     if opts.restrict:
         task.restrict(tasks.definitions, opts.restrict)
 
-    print(etree.tostring(task.toXML(), pretty_print=True))
+    if opts.json:
+        print json.dumps(task.toJSON(), indent=2)
+    else:
+        print(etree.tostring(task.toXML(), pretty_print=True))
 
 ###############
 ### Prepare ###
@@ -515,7 +569,10 @@ def command_prepare(opts):
                 info.filter(path, path2)
 
     # --- Everything OK, print
-    print(etree.tostring(task.toXML(), pretty_print=True))
+    if opts.json:
+        print json.dumps(task.toJSON())
+    else:
+        print(etree.tostring(task.toXML(), pretty_print=True))
 
 
 def createBaseDir(path):
@@ -636,6 +693,7 @@ def main(dir, argv):
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
 
     for p in [parser_get, parser_prepare]:
+        p.add_argument("--json", action="store_true", help="JSON output")
         p.add_argument("--restrict", help="Restrict to a sub-collection")
         p.add_argument("task", help="The task name")
 
