@@ -94,8 +94,8 @@ var task_evaluate = {
 	</>,
 
 	inputs: {
-	    "run": { xml: "irc:run", help: "The path to the run file to evaluate" },
-        "qrels": { xml: "irc:qrels", help: "The relevance assessments" },
+	    "run": { json: "irc:run", help: "The path to the run file to evaluate" },
+        "qrels": { json: "irc:qrels", help: "The relevance assessments" },
         "out": { value: "xp:file", help: "The output file", optional: true }
     },
 
@@ -103,7 +103,7 @@ var task_evaluate = {
 	
 		var outputPath = p.out() ? p.out() : xpm.file(p.run() + ".eval");
 
-		var command = [path(irc_bin), "evaluate", file(p.run.path()), new ParameterFile("qrels", p.qrels)];
+		var command = [path(irc_bin), "evaluate", "--json", file(p.run.path()), new ParameterFile("qrels", p.qrels.toSource())];
 		
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 

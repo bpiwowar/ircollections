@@ -59,11 +59,13 @@ def log(message):
     sys.stderr.write(message)
     sys.stderr.write("\n")
 
+
 def xppath(path):
     return {
         "{%s}type" % xpns: "{%s}file" % xpns,
         "{%s}value" % xpns: path
     }
+
 
 def find(task, name):
     """ Find the first task ancestor that has an element of a given name
@@ -93,7 +95,7 @@ def findDefinition(definitions, id, parentType, type):
     if len(el) > 1:
         raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
     el = el[0]
-    
+
     # Look for an alias
     alias = el.get("alias")
     if not alias is None:
@@ -219,7 +221,8 @@ class Documents:
 
         self.compression = self.collection.get("compression")
         self.suffix = self.collection.get("suffix")
-        if self.suffix is None: self.suffix = ""
+        if self.suffix is None:
+            self.suffix = ""
 
     def getRelFiles(self):
         if self.aliased_from is None:
@@ -255,20 +258,20 @@ class Documents:
             subcollections.append(subcollection.toJSON())
 
         path = absolutePath("data", "irc.cols", self.id)
-            
-        json = {
+
+        r = {
             "{%s}type" % xpns: "{%s}documents" % ircns,
             "id": self.id,
             "path": xppath(path),
             "type": self.type,
         }
         if subcollections:
-            json["subcollections"] = subcollections
+            r["subcollections"] = subcollections
 
         if self.compression is not None:
-            json["compression"] = self.compression
-        
-        return json
+            r["compression"] = self.compression
+
+        return r
 
 
 class Topics:
@@ -333,7 +336,7 @@ class Assessments:
         xml = XML.qrels(id=self.id, type=self.type)
         xml.set("{%s}path" % xpns, self.path)
         return xml
-    
+
     def toJSON(self):
         return {
             "{%s}type" % xpns: "{%s}qrels" % ircns,
@@ -382,7 +385,7 @@ class Task():
             self.assessments.toXML()
         )
         return root
-        
+
     def toJSON(self):
         return {
             ("{%s}type" % (xpns)): "{%s}task" % ircns,
@@ -450,25 +453,36 @@ def find_bin(cmd):
 
 
 def command_evaluate(opts):
-    if opts.assessments:
-        qrels = etree.parse(opts.assessments)
+    if opts.json:
+        if opts.assessments:
+            qrels = json.load(file(opts.assessments))
+        else:
+            qrels = json.loads(sys.stdin)
+        qrels_type = qrels["type"]
+        qrels_path = qrels["path"]["{%s}value" % xpns]
+
     else:
-        qrels = etree.parse(sys.stdin)
-        
-    qrels = qrels.getroot()
-        
-    runfile = opts.run
-    
-    if qrels.get("type") == "trec":
-        trec_eval = find_bin("trec_eval")
+        if opts.assessments:
+            qrels = etree.parse(opts.assessments)
+        else:
+            qrels = etree.parse(sys.stdin)
+
+        qrels = qrels.getroot()
+        qrels_type = qrels.get("type")
         qrels_path = qrels.get("{%s}path" % xpns)
+
+    runfile = opts.run
+
+    if qrels_type == "trec":
+        trec_eval = find_bin("trec_eval")
+
         if qrels_path is None:
             raise Exception("Cannot retrieve the assessments path")
         command = [trec_eval, qrels_path, runfile]
         code = subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
         sys.exit(code)
     else:
-        raise Exception("Cannot evaluate qrels with type %s", qrels.get("type"))
+        raise Exception("Cannot evaluate qrels with type %s", qrels_type)
 
 
 ###########
@@ -691,6 +705,7 @@ def main(dir, argv):
     parser_get = subparsers.add_parser("get", help="Get a task")
 
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
+    parser_evaluate.add_argument("--json", action="store_true", help="JSON input")
 
     for p in [parser_get, parser_prepare]:
         p.add_argument("--json", action="store_true", help="JSON output")
