@@ -585,8 +585,6 @@ def command_prepare(opts):
                         line = p[0].sub(p[1], line)
                     if filter is None or filter.match(line):
                         out.write(line)
-                    else:
-                        log("Line not matching: %s" % line)
                     
             out.close()
             shutil.move(tmpPath2.name, path)
