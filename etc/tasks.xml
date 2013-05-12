@@ -95,50 +95,53 @@
 
         <topics id="trec.1.adhoc" type="trec" path="trec/trec1/adhoc/trec1.topics.51-100">
             <property parts="desc"/>
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
+            <data type="gz">
+                <url>http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
+                <replace pattern="Number:(\s+)0" with="Number: \1"/>
+            </data>
             <!-- We need to replace topic numbers to match qrels -->
-            <replace pattern="Number:(\s+)0" with="Number: \1"/>
+            
         </topics>
         <topics id="trec.2.adhoc" type="trec" path="trec/trec2/adhoc/trec2.topics.101-150">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.101-150.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.101-150.gz</url></data>
         </topics>
         <topics id="trec.3.adhoc" type="trec" path="trec/trec3/adhoc/trec3.topics.151-200">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.151-200.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.151-200.gz</url></data>
         </topics>
         <topics id="trec.4.adhoc" type="trec" path="trec/trec4/adhoc/trec4.topics.201-250">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.201-250.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.201-250.gz</url></data>
         </topics>
         <topics id="trec.5.adhoc" type="trec" path="trec/trec5/adhoc/trec5.topics.251-300">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.251-300.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.251-300.gz</url></data>
         </topics>
         <topics id="trec.6.adhoc" type="trec" path="trec/trec6/adhoc/trec6.topics.301-350">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.301-350.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.301-350.gz</url></data>
         </topics>
         <topics id="trec.7.adhoc" type="trec" path="trec/trec7/adhoc/trec7.topics.351-400">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.351-400.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.351-400.gz</url></data>
         </topics>
         <topics id="trec.8.adhoc" type="trec" path="trec/trec8/adhoc/trec8.topics.401-450">
-            <url type="gz">http://trec.nist.gov/data/topics_eng/topics.401-450.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.401-450.gz</url></data>
             <property name="comma-separated-phrases"/>
         </topics>
         
         
         <!-- Robust 2003-2005 -->
         <topics id="trec.2003.robust" type="trec" path="trec/2003/robust/topics">
-            <url>http://trec.nist.gov/data/topics_eng/robust.03.final_100.txt</url>
+            <data><url>http://trec.nist.gov/data/topics_eng/robust.03.final_100.txt</url></data>
         </topics>
 
         <topics id="trec.2004.robust" type="trec" path="trec/2004/robust/topics">
-            <url type="gz">http://trec.nist.gov/data/robust/04.testset.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/robust/04.testset.gz</url></data>
         </topics>
 
         <topics id="trec.2005.robust" type="trec">
-            <url>http://trec.nist.gov/data/robust/05/05.50.topics.txt</url>
+            <data><url>http://trec.nist.gov/data/robust/05/05.50.topics.txt</url></data>
         </topics>
 
 
         <topics id="trec.2009.web" path="trec/2009/web/wt09.topics.full.xml" type="webtrack2009">
-            <url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url>
+            <data><url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url></data>
         </topics>
 
         
@@ -151,53 +154,59 @@
         
         <!-- TREC-1 to TREC-8 -->
         <qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url></data>
         </qrels>
+        
         <qrels id="trec.2.adhoc" path="trec/trec2/adhoc/qrels.101-150" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz</url></data>
         </qrels>
-        <qrels id="trec.3.adhoc" path="trec/trec3/adhoc/qrels.151-00" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz</url>
+        
+        <qrels id="trec.3.adhoc" path="trec/trec3/adhoc/qrels.151-200" type="trec">
+            <data type="tar.gz#gz">
+                <url>http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz</url>
+                <filter>^(1\d\d|200)\s</filter>
+            </data>
         </qrels>
+        
         <qrels id="trec.4.adhoc" path="trec/trec2/adhoc/qrels.201-250" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz</url></data>
         </qrels>
         <qrels id="trec.5.adhoc" path="trec/trec5/adhoc/qrels.251-300" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.251-300.parts1-5.tar.gz</url></data>
         </qrels>
         <qrels id="trec.6.adhoc" path="trec/trec6/adhoc/qrels.301-350" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.trec6.adhoc.parts1-5.tar.gz</url></data>
         </qrels>
         <qrels id="trec.7.adhoc" path="trec/trec7/adhoc/qrels.351-400" type="trec">
-            <url type="tar.gz#gz">http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz</url>
+            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.trec7.adhoc.parts1-5.tar.gz</url></data>
         </qrels>
         <qrels id="trec.8.adhoc" path="trec/trec8/adhoc/qrels.401-450" type="trec">
-            <url type="tar.gz">http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url>
+            <data type="tar.gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url></data>
         </qrels>
         
         <!-- ROBUST 2003-05 -->
         <qrels id="trec.2003.robust" type="trec">
-            <url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url>
+            <data><url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url></data>
         </qrels>
 
         <qrels id="trec.2004.robust" type="trec">
-            <url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url>
+            <data><url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url></data>
         </qrels>
         <qrels id="trec.2005.robust" type="trec">
-            <url>http://trec.nist.gov/data/robust/05/TREC2005.qrels.txt</url>
+            <data><url>http://trec.nist.gov/data/robust/05/TREC2005.qrels.txt</url></data>
         </qrels>
         
         
         
         <!-- QRels for the TREC 2009 Web Track -->
         <qrels id="trec.2009.web.adhoc-A" path="trec/2009/web/qrels-1-50-a.dat" type="trec">
-            <url type="gz">http://trec.nist.gov/data/web/09/prels.catA.1-50.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/web/09/prels.catA.1-50.gz</url></data>
         </qrels>
         <qrels id="trec.2009.web.adhoc-B" path="trec/2009/web/qrels-1-50-b.dat" type="trec">
-            <url type="gz">http://trec.nist.gov/data/web/09/prels.catB.1-50.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/web/09/prels.catB.1-50.gz</url></data>
         </qrels>
         <qrels id="trec.2009.web.diversity" type="trec.diversity">
-            <url type="gz">http://trec.nist.gov/data/web/09/qrels.diversity.gz</url>
+            <data type="gz"><url>http://trec.nist.gov/data/web/09/qrels.diversity.gz</url></data>
         </qrels>
 
         

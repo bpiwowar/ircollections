@@ -141,6 +141,8 @@ def xpath(node, path):
 def xpath1(node, path):
     """Get the first item returned by an XPath"""
     n = node.xpath(path, namespaces=ircNamespaces)
+    if len(n) > 1:
+        raise Exception("More than one item match XPath %s" % path)
     if len(n) > 0:
         return n[0]
     return None
@@ -274,6 +276,20 @@ class Documents:
         return r
 
 
+def getDownloadData(el):
+    data = []
+    for e in xpath(el, "irc:data"):
+        data.append({ 
+            "url": xpath1(e, "irc:url/text()"), 
+            "replace": xpath(e, "irc:replace"),
+            "type": e.get("type"),
+            "filter": xpath1(e, "irc:filter/text()")
+        })
+    
+        if data[-1]["type"] is None:
+            raise Exception("Type for assessments %s is not defined" % id)
+    return data
+
 class Topics:
     def __init__(self, doc, id):
         self.id = id
@@ -287,10 +303,8 @@ class Topics:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "topics")
         self.path = absolutePath("data", self.path)
 
-        self.url = xpath1(topics, "irc:url")
+        self.data = getDownloadData(topics)
         self.type = topics.get("type")
-        self.compression = topics.get("compression")
-        self.replace = xpath(topics, "irc:replace")
 
     def toJSON(self):
         return {
@@ -319,12 +333,9 @@ class Assessments:
         if self.path is None:
             self.path = os.path.join(re.sub("\\.", os.sep, self.id), "qrels")
         self.path = absolutePath("data", self.path)
-
-        self.url = xpath1(qrels, "irc:url")
         self.type = qrels.get("type")
-        if self.type is None:
-            raise Exception("Type for assessments %s is not defined" % id)
-        self.replace = xpath(qrels, "irc:replace")
+
+        self.data = getDownloadData(qrels)
 
     def restrict(self, documents):
         self.documents = documents
@@ -542,11 +553,7 @@ def command_prepare(opts):
         info = info2[0]
         force = info2[1]
 
-        type = info.url.get("type")
-        url = info.url.text
-        # Get the downloading scheme, fallback on plain text
-        f = downloadSchemes.get(type, downloadSchemes.get("plain"))
-
+        # If this is a restriction, get the original path
         if hasattr(info, "origPath") and not info.origPath is None:
             path = absolutePath(info.origPath)
         else:
@@ -555,25 +562,34 @@ def command_prepare(opts):
         if not os.path.exists(path) or force:
             log("Downloading %s %s into [%s]..." % (k, info.id, path))
             createBaseDir(path)
-            if len(info.replace) == 0:
-                f[0](path, url, f[1:])
-            else:
+            
+            tmpPath2 = tempfile.NamedTemporaryFile(delete=False)
+            out = open(tmpPath2.name, 'w')
+            
+            for data in info.data:
+                # Get the downloading scheme, fallback on plain text
+                f = downloadSchemes.get(data["type"], downloadSchemes.get("plain"))
+                url = data["url"]
+                
                 # Replace with regular expressions
                 tmpPath = tempfile.NamedTemporaryFile(delete=True)
-                print tmpPath.name
                 f[0](tmpPath.name, url, f[1:])
 
-                patterns = [[re.compile(r.get("pattern")), r.get("with")] for r in info.replace]
+                patterns = [[re.compile(r.get("pattern")), r.get("with")] for r in data["replace"]]
+                filter = None
+                if data["filter"] is not None:
+                    filter = re.compile(data["filter"])
 
-                tmpPath2 = tempfile.NamedTemporaryFile(delete=False)
-                out = open(tmpPath2.name, 'w')
                 for line in open(tmpPath.name, 'r'):
                     for p in patterns:
                         line = p[0].sub(p[1], line)
-                    out.write(line)
-                out.close()
-
-                shutil.move(tmpPath2.name, path)
+                    if filter is None or filter.match(line):
+                        out.write(line)
+                    else:
+                        log("Line not matching: %s" % line)
+                    
+            out.close()
+            shutil.move(tmpPath2.name, path)
 
         # Restrict if needed by filtering
         if hasattr(info, "origPath"):
