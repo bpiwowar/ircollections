@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
 #
@@ -494,6 +494,12 @@ class Topics(AbstractTopics):
 class AbstractAssessments(TaskObject):
     def __init__(self, origin = None):
         super(AbstractAssessments, self).__init__(self, origin)
+
+    def transform(self, engine):
+        return self
+
+    def restrict(self, documents):
+        return RestrictedAssessements(self, documents)
         
     def toXML(self):
         xml = XML.qrels(id=self.id, type=self.type)
@@ -532,8 +538,8 @@ class RestrictedAssessements(AbstractAssessments):
     def filter_trec(self, m):
         tmp = "%s.tmp" % self.path
 
-        f = file(tmp, "w")
-        for line in file(self.origin.path, "r"):
+        f = open(tmp, "w")
+        for line in open(self.origin.path, "r"):
             filename = line.split(" ")[2]
             if m.match(filename):
                 f.write(line)
@@ -558,12 +564,6 @@ class Assessments(AbstractAssessments):
         self.type = qrels.get("type")
 
         self.data = getDownloadData(qrels)
-
-    def restrict(self, documents):
-        return RestrictedAssessements(self, documents)
-
-    def transform(self, engine):
-        return self
         
     def generate(self, opts):
         generate_trec(self, opts.download_assessments)
@@ -603,6 +603,7 @@ class Task():
             raise Exception("Could not find documents [%s]" % docsid)
 
         self.assessments = self.assessments.restrict(self.documents)
+        return self
         
     def transform(self, engine):
         self.documents = self.documents.transform(engine)
@@ -664,7 +665,7 @@ def find_bin(cmd):
 def command_evaluate(opts):
     if opts.json:
         if opts.assessments:
-            qrels = json.load(file(opts.assessments))
+            qrels = json.load(open(opts.assessments))
         else:
             qrels = json.loads(sys.stdin)
         qrels_type = qrels["type"]
@@ -702,8 +703,9 @@ def get_task(opts, generate):
     tasks = Tasks(opts.dir)
     taskid = opts.task
     task = tasks.getTask(taskid)
+    
     if opts.restrict:
-        task.restrict(tasks.definitions, opts.restrict)
+        task = task.restrict(tasks.definitions, opts.restrict)
 
     if opts.engine != "none":
         task = task.transform(opts.engine)
@@ -852,6 +854,10 @@ def main(dir, argv):
     parser_evaluate.add_argument("assessments", nargs="?", help="The XML description of the assessments (as returned by ircollections)")
 
     args = parser.parse_args()
+    if args.command == None:
+        parser.print_help()
+        sys.exit()
+        
     # try:
     fname = "command_%s" % args.command.replace("-", "_")
     f = globals()[fname]

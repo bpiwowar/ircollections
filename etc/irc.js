@@ -38,7 +38,7 @@ module.add_schema(irc_dir.path("etc","irc.rnc"));
 function get_task(p) { 
 	logger.info("IR task is [%s], restriction [%s]", p.id(), p.restrict());
 
-	args= [path(irc_bin), p.command(), "--json"];
+	args= [path(irc_bin), p.command(), "--json", "--engine", p.engine()];
 	if (p.restrict()) 
 		args = args.concat("--restrict", p.restrict());
 					
@@ -53,6 +53,7 @@ function get_task(p) {
 		throw "Error while running get-task: error code is " 
 			+ output[0] + ", command was [" + command.toString() + "]";
 		
+    logger.debug("Output is: %s", output[1]);
 	return JSON.parse(output[1].trim());	
 }
 
@@ -68,7 +69,8 @@ tasks("irc:get-task") = {
     inputs: {
         command: { value: "xp:string", "default": "prepare"},
         id: { value: "xp:string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
-        restrict: { value: "xp:string", help: "Restrict to a subcollection", optional: true }
+        restrict: { value: "xp:string", help: "Restrict to a subcollection", optional: true },
+        engine: { value: "xp:string", help: "Transformation engine to use (none, indri)", default: "none" }
     },
 
     output: qname(irc, "task"),
