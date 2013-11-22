@@ -318,8 +318,14 @@ class Documents(AbstractDocuments):
 
     def getRelFiles(self):
         if self.aliased_from is None:
-            return os.path.join(absolutePath("docs"), "%s.relfiles" % self.id)
-        self.aliased_from.getRelFiles()
+            if len(self.subcollections) > 0:
+                l = []
+                for sc in self.subcollections:
+                    l += sc.getRelFiles()
+                return l
+
+            return [os.path.join(absolutePath("docs"), "%s.relfiles" % self.id)]
+        return self.aliased_from.getRelFiles()
 
     def getBasePath(self):
         return self.basepath
@@ -340,22 +346,24 @@ class Documents(AbstractDocuments):
             docfile = documents.path
             basepath = documents.getBasePath()
             if not os.path.isfile(docfile) or opts.generate_collection:
-                input = open(documents.getRelFiles(), "r")
-
                 tmpdocfile = docfile + ".tmp"
                 out = open(tmpdocfile, "w")
                 log("Generating the collection file [%s]" % docfile)
-                for line in input.readlines():
-                    line = line.strip()
-                    path = os.path.join(basepath, "%s%s" % (line, documents.suffix))
-                    if opts.check_files and not os.path.exists(path):
-                        out.close()
-                        input.close()
-                        os.remove(tmpdocfile)
-                        raise Exception("File [%s] does not exist - aborting" % path)
-                    out.write(path + "\n")
+                for relfile in documents.getRelFiles():
+                    log("Relfile: " + relfile)
+                    input = open(relfile, "r")
+
+                    for line in input.readlines():
+                        line = line.strip()
+                        path = os.path.join(basepath, "%s%s" % (line, documents.suffix))
+                        if opts.check_files and not os.path.exists(path):
+                            out.close()
+                            input.close()
+                            os.remove(tmpdocfile)
+                            raise Exception("File [%s] does not exist - aborting" % path)
+                        out.write(path + "\n")
+                    input.close()
                 out.close()
-                input.close()
                 shutil.move(tmpdocfile, docfile)
 
 def getDownloadData(el):
