@@ -23,11 +23,11 @@
         <collection id="trec.ap88" description="Associated Press (1988)" path="cols/ap88.col.files">
             <document pattern="^AP88.*$"/>
         </collection>
-        <collection id="trec.ap8889" description="Associated Press (1988-89)" path="cols/ap8889.col.files">
-            <document pattern="^AP8[89].*$"/>
+        <collection id="trec.ap89" description="Associated Press (1989)" path="cols/ap89.col.files">
+            <document pattern="^AP89.*$"/>
         </collection>
-        <collection id="trec.ap8890" description="Associated Press (1988-90)">
-            <document pattern="^AP(8[89]|90).*$"/>
+        <collection id="trec.ap90" description="Associated Press (1990)" path="cols/ap90.col.files">
+            <document pattern="^AP90.*$"/>
         </collection>
         
     
@@ -40,8 +40,8 @@
         <collection id="trec.fr88">
             <document pattern="^FR88.*$"/>
         </collection>
-        <collection id="trec.fr8889"/>
-        <collection id="trec.fr8894"/>
+        <collection id="trec.fr88"/>
+        <collection id="trec.fr89"/>
         <collection id="trec.fr94"/>
         <collection id="trec.ft1"/>
         <collection id="trec.la8990"/>
@@ -56,9 +56,9 @@
         <collection id="trec.ziff12"/>
         <collection id="trec.ziff2"/>
         <collection id="trec.ziff23"/>
-        <collection id="trec.1.adhoc" ref="trec.ap8889 trec.doe1 trec.fr8889 trec.wsj8792 trec.ziff12"/>
-        <collection id="trec.4.adhoc" ref="trec.ap8890 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff23" path="cols/trec4.col.files"/>
-        <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr8894 trec.ft1 trec.wsj9092 trec.ziff2" path="cols/trec5.col.files"/>
+        <collection id="trec.1.adhoc" ref="trec.ap88 trec.ap89 trec.doe1 trec.fr88 trec.fr89 trec.wsj8792 trec.ziff12"/>
+        <collection id="trec.4.adhoc" ref="trec.ap88 trec.ap89 trec.ap90 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff23" path="cols/trec4.col.files"/>
+        <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr88 trec.fr94 trec.ft1 trec.wsj9092 trec.ziff2" path="cols/trec5.col.files"/>
         <collection id="trec.6.adhoc" ref="trec.cr1 trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         <collection id="trec.7.adhoc" ref="trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         
