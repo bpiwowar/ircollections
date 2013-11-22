@@ -46,18 +46,19 @@
         <collection id="trec.la8990"/>
         <collection id="trec.sjm1"/>
         <collection id="trec.usp93"/>
-        <collection id="trec.wsj8792">
-            <document pattern="^WSJ87.*$"/>
-        </collection>
-        <collection id="trec.wsj9092">
-            <document pattern="^WSJ90.*$"/>
-        </collection>
+        <collection id="trec.wsj87"/>
+        <collection id="trec.wsj88"/>
+        <collection id="trec.wsj89"/>
+        <collection id="trec.wsj90"/>
+        <collection id="trec.wsj91"/>
+        <collection id="trec.wsj92"/>
+
         <collection id="trec.ziff1"/>
         <collection id="trec.ziff2"/>
         <collection id="trec.ziff3"/>
-        <collection id="trec.1.adhoc" ref="trec.ap88 trec.ap89 trec.doe1 trec.fr88 trec.fr89 trec.wsj8792 trec.ziff1 trec.ziff2"/>
-        <collection id="trec.4.adhoc" ref="trec.ap88 trec.ap89 trec.ap90 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff2 trec.ziff3" path="cols/trec4.col.files"/>
-        <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr88 trec.fr94 trec.ft1 trec.wsj9092 trec.ziff2" path="cols/trec5.col.files"/>
+        <collection id="trec.1.adhoc" ref="trec.ap88 trec.ap89 trec.doe1 trec.fr88 trec.fr89 trec.wsj87 trec.wsj88 trec.wsj89 trec.wsj90 trec.wsj91 trec.wsj92 trec.ziff1 trec.ziff2"/>
+        <collection id="trec.4.adhoc" ref="trec.ap88 trec.ap89 trec.ap90 trec.fr88 trec.sjm1 trec.usp93 trec.wsj90 trec.wsj91 trec.wsj92 trec.ziff2 trec.ziff3" path="cols/trec4.col.files"/>
+        <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr88 trec.fr94 trec.ft1 trec.wsj90 trec.wsj91 trec.wsj92 trec.ziff2" path="cols/trec5.col.files"/>
         <collection id="trec.6.adhoc" ref="trec.cr1 trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         <collection id="trec.7.adhoc" ref="trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         
