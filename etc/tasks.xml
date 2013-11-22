@@ -40,7 +40,6 @@
         <collection id="trec.fr88">
             <document pattern="^FR88.*$"/>
         </collection>
-        <collection id="trec.fr88"/>
         <collection id="trec.fr89"/>
         <collection id="trec.fr94"/>
         <collection id="trec.ft1"/>
