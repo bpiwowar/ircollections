@@ -52,11 +52,11 @@
         <collection id="trec.wsj9092">
             <document pattern="^WSJ90.*$"/>
         </collection>
-        <collection id="trec.ziff12"/>
+        <collection id="trec.ziff1"/>
         <collection id="trec.ziff2"/>
-        <collection id="trec.ziff23"/>
-        <collection id="trec.1.adhoc" ref="trec.ap88 trec.ap89 trec.doe1 trec.fr88 trec.fr89 trec.wsj8792 trec.ziff12"/>
-        <collection id="trec.4.adhoc" ref="trec.ap88 trec.ap89 trec.ap90 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff23" path="cols/trec4.col.files"/>
+        <collection id="trec.ziff3"/>
+        <collection id="trec.1.adhoc" ref="trec.ap88 trec.ap89 trec.doe1 trec.fr88 trec.fr89 trec.wsj8792 trec.ziff1 trec.ziff2"/>
+        <collection id="trec.4.adhoc" ref="trec.ap88 trec.ap89 trec.ap90 trec.fr88 trec.sjm1 trec.usp93 trec.wsj9092 trec.ziff2 trec.ziff3" path="cols/trec4.col.files"/>
         <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr88 trec.fr94 trec.ft1 trec.wsj9092 trec.ziff2" path="cols/trec5.col.files"/>
         <collection id="trec.6.adhoc" ref="trec.cr1 trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         <collection id="trec.7.adhoc" ref="trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
