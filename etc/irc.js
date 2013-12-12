@@ -117,7 +117,7 @@ var task_evaluate = {
 
 		// Run the evaluation
 		var r = {
-            "xp:type": "irc:run",
+            "type": "irc:run",
             resource: rsrc,
 		    path: outputPath,
             run: p.run,

@@ -6,7 +6,9 @@
 # and manage them
 #
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 from lxml import etree
 from lxml.builder import ElementMaker
 
@@ -63,8 +65,8 @@ def log(message):
 
 def xppath(path):
     return {
-        "{%s}type" % xpns: "{%s}file" % xpns,
-        "{%s}value" % xpns: path
+        "type": "{%s}file" % xpns,
+        "value": path
     }
 
 
@@ -192,29 +194,30 @@ class Tasks():
 
 
 class TaskObject:
-    def __init__(self, origin = None):
+    def __init__(self, origin=None):
         self.origin = origin
-    
+
     def __getattr__(self, name):
         if name != "origin" and hasattr(self, "origin"):
             if self.origin is not None:
                 v = getattr(self.origin, name)
                 return v
         raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
-        
+
+
 class AbstractDocuments(TaskObject):
     """
         This defines a set of documents
-        
+
         Properties:
         - id: The unique ID for this collection
         - type: the collection type
         - aliased_from: If this collection is an alias for another, this contains the Documents object
-        
+
     """
-    def __init__(self, origin = None):
+    def __init__(self, origin=None):
         TaskObject.__init__(self, origin)
-        
+
     def toXML(self):
         xml = XML.documents(type=self.type, id=self.id)
         xml.set("{%s}path" % xpns, self.path)
@@ -233,10 +236,10 @@ class AbstractDocuments(TaskObject):
             subcollections.append(subcollection.toJSON())
 
         r = {
-            "{%s}type" % xpns: "{%s}documents" % ircns,
+            "type": "{%s}documents" % ircns,
             "id": self.id,
             "path": xppath(self.path),
-            "type": self.type,
+            "format": self.type,
         }
         if subcollections:
             r["subcollections"] = subcollections
@@ -246,12 +249,13 @@ class AbstractDocuments(TaskObject):
 
         return r
 
-class TransformedDocuments(AbstractDocuments):        
+
+class TransformedDocuments(AbstractDocuments):
     def __init__(self, origin, engine):
         AbstractDocuments.__init__(self, origin)
         self.engine = engine
         self.type = 'indri'
-        self.path = "%s.%s" % (self.origin.path, self.engine) 
+        self.path = "%s.%s" % (self.origin.path, self.engine)
     
     def generate(self, opts):
         self.origin.generate(opts)
@@ -418,10 +422,10 @@ class AbstractTopics(TaskObject):
 
     def toJSON(self):
         return {
-            "{%s}type" % xpns: "{%s}topics" % ircns,
+            "type": "{%s}topics" % ircns,
             "id": self.id,
             "path": xppath(self.path),
-            "type": self.type
+            "format": self.type
         }
 
     def toXML(self):
@@ -476,6 +480,7 @@ class TransformedTopics(AbstractTopics):
 
         shutil.move(tmp, self.path)
                 
+
 class Topics(AbstractTopics):
     def __init__(self, doc, id):
         self.id = id
@@ -499,6 +504,7 @@ class Topics(AbstractTopics):
     def transform(self, engine):
         return TransformedTopics(self, engine)
 
+
 class AbstractAssessments(TaskObject):
     def __init__(self, origin = None):
         super(AbstractAssessments, self).__init__(self, origin)
@@ -516,10 +522,10 @@ class AbstractAssessments(TaskObject):
 
     def toJSON(self):
         return {
-            "{%s}type" % xpns: "{%s}qrels" % ircns,
+            "type": "{%s}qrels" % ircns,
             "id": self.id,
             "path": xppath(self.path),
-            "type": self.type
+            "format": self.type
         }
 
 class RestrictedAssessements(AbstractAssessments):
@@ -595,7 +601,7 @@ class Task():
 
     def toJSON(self):
         return {
-            ("{%s}type" % (xpns)): "{%s}task" % ircns,
+            "type": "{%s}task" % ircns,
             "documents": self.documents.toJSON(),
             "topics": self.topics.toJSON(),
             "qrels": self.assessments.toJSON()
@@ -677,7 +683,7 @@ def command_evaluate(opts):
         else:
             qrels = json.loads(sys.stdin)
         qrels_type = qrels["type"]
-        qrels_path = qrels["path"]["{%s}value" % xpns]
+        qrels_path = qrels["path"]["value"]
 
     else:
         if opts.assessments:
@@ -728,10 +734,11 @@ def get_task(opts, generate):
         
 
 def command_get(opts):
-    task = get_task(opts, False)
+    get_task(opts, False)
+
 
 def command_prepare(opts):
-    task = get_task(opts, True)
+    get_task(opts, True)
 
 
 def createBaseDir(path):
