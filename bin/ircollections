@@ -26,12 +26,13 @@ import json
 
 import trec
 
-########################
-### Global variables ###
-########################
+#
+# Global variables ###
+#
 
 # The main IR Collections directory
-ircdir = os.path.dirname(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
+ircdir = os.path.dirname(
+    os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
 
 xpns = "http://experimaestro.lip6.fr"
 ircns = "http://ircollections.sourceforge.net"
@@ -42,11 +43,11 @@ ircnsNone = {None: ircns, "xp": xpns}
 XML = ElementMaker(namespace=ircns, nsmap=ircnsNone)
 
 
-#########################
-### Utility functions ###
-#########################
+#
+# Utility functions ###
+#
 
-## {{{ http://code.activestate.com/recipes/552732/ (r1)
+# {{{ http://code.activestate.com/recipes/552732/ (r1)
 def rm_rf(d):
     log("Removing directory %s" % d)
     for path in (os.path.join(d, f) for f in os.listdir(d)):
@@ -55,7 +56,7 @@ def rm_rf(d):
         else:
             os.unlink(path)
     os.rmdir(d)
-## end of http://code.activestate.com/recipes/552732/ }}}
+# end of http://code.activestate.com/recipes/552732/ }}}
 
 
 def log(message):
@@ -73,7 +74,8 @@ def xppath(path):
 def find(task, name):
     """ Find the first task ancestor that has an element of a given name
     """
-    l = task.xpath("ancestor-or-self::irc:task[irc:%s][1]/irc:%s" % (name, name), namespaces=ircNamespaces)
+    l = task.xpath("ancestor-or-self::irc:task[irc:%s][1]/irc:%s" %
+                   (name, name), namespaces=ircNamespaces)
     if len(l) == 0:
         raise Exception("Could not find a definition for task '%s'" % (name))
     return l[0]
@@ -94,9 +96,11 @@ def findDefinition(definitions, id, parentType, type):
         el = el + doc.xpath(xpathStr, namespaces=ircNamespaces)
 
     if len(el) == 0:
-        raise Exception("Could not find a %s/%s with id %s" % (parentType, type, id))
+        raise Exception("Could not find a %s/%s with id %s" %
+                        (parentType, type, id))
     if len(el) > 1:
-        raise Exception("Found too many a %s/%s with id %s (found %d)" % (parentType, type, id, len(el)))
+        raise Exception("Found too many a %s/%s with id %s (found %d)" %
+                        (parentType, type, id, len(el)))
     el = el[0]
 
     # Look for an alias
@@ -151,16 +155,18 @@ def xpath1(node, path):
     return None
 
 
-###############
-### Classes ###
-###############
+#
+# Classes ###
+#
 
 class Tasks():
+
     def __init__(self, dir):
         self.definitions = []
         # Loop over pairs of (filepath, priority [higher better])
-        for xmlfile in [[os.path.join(dir, os.path.join("etc", "tasks.xml")), 0],
-                        [os.path.join(dir, os.path.join("etc", "local.xml")), 10]]:
+        for xmlfile in [[os.path.join(
+            dir, os.path.join("etc", "tasks.xml")), 0],
+                [os.path.join(dir, os.path.join("etc", "local.xml")), 10]]:
             try:
                 self.definitions.append([etree.parse(xmlfile[0]), xmlfile[1]])
             except etree.XMLSyntaxError as e:
@@ -194,6 +200,7 @@ class Tasks():
 
 
 class TaskObject:
+
     def __init__(self, origin=None):
         self.origin = origin
 
@@ -202,10 +209,12 @@ class TaskObject:
             if self.origin is not None:
                 v = getattr(self.origin, name)
                 return v
-        raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
+        raise AttributeError("%s instance has no attribute '%s'" %
+                             (self.__class__.__name__, name))
 
 
 class AbstractDocuments(TaskObject):
+
     """
         This defines a set of documents
 
@@ -215,6 +224,7 @@ class AbstractDocuments(TaskObject):
         - aliased_from: If this collection is an alias for another, this contains the Documents object
 
     """
+
     def __init__(self, origin=None):
         TaskObject.__init__(self, origin)
 
@@ -251,39 +261,51 @@ class AbstractDocuments(TaskObject):
 
 
 class TransformedDocuments(AbstractDocuments):
+
     def __init__(self, origin, engine):
         AbstractDocuments.__init__(self, origin)
         self.engine = engine
-        self.type = 'indri'
         self.path = "%s.%s" % (self.origin.path, self.engine)
-    
+
     def generate(self, opts):
         self.origin.generate(opts)
         if opts.generate_collection or not os.path.exists(self.path):
             getattr(self, "generate_%s" % self.engine)(opts)
-        
+
+    def generate_json(self, opts):
+        tmp = "%s.tmp" % self.path
+        f = open(tmp, "w")
+        f.write("[\n")
+        for line in open(self.origin.path, "r"):
+            f.write(json.dumps({"class": self.origin.type, "path": line.strip()}))
+        f.write("]\n")
+        f.close()
+        shutil.move(tmp, self.path)
+
     def generate_indri(self, opts):
         tmp = "%s.tmp" % self.path
 
         origType = self.origin.type
-        if origType == "trec": 
-            filetype = "trectext" 
+        if origType == "trec":
+            filetype = "trectext"
         elif origType == "warc/0.18":
             filetype = "warc"
-        else: 
-            raise Exception("File type %s is not handled by Indri" % origType) 
-        
+        else:
+            raise Exception("File type %s is not handled by Indri" % origType)
+
         f = open(tmp, "w")
         f.write('<parameters>\n')
         for line in open(self.origin.path, "r"):
-            f.write("<corpus><class>%s</class><path>%s</path></corpus>\n" % (filetype, line.strip()))
+            f.write("<corpus><class>%s</class><path>%s</path></corpus>\n" %
+                    (filetype, line.strip()))
         f.write('</parameters>\n')
         f.close()
 
         shutil.move(tmp, self.path)
-        
+
 
 class Documents(AbstractDocuments):
+
     def __init__(self, doc, id):
         collection = findDefinition(doc, id, "collections", "collection")
 
@@ -316,7 +338,7 @@ class Documents(AbstractDocuments):
         self.suffix = self.collection.get("suffix")
         if self.suffix is None:
             self.suffix = ""
-            
+
         self.engineSuffix = ""
         self.path = absolutePath("data", "irc.cols", self.id)
 
@@ -341,7 +363,6 @@ class Documents(AbstractDocuments):
             for c in sc.collections():
                 yield c
 
-
     def transform(self, engine):
         return TransformedDocuments(self, engine)
 
@@ -359,27 +380,30 @@ class Documents(AbstractDocuments):
 
                     for line in input.readlines():
                         line = line.strip()
-                        path = os.path.join(basepath, "%s%s" % (line, documents.suffix))
+                        path = os.path.join(basepath, "%s%s" %
+                                            (line, documents.suffix))
                         if opts.check_files and not os.path.exists(path):
                             out.close()
                             input.close()
                             os.remove(tmpdocfile)
-                            raise Exception("File [%s] does not exist - aborting" % path)
+                            raise Exception(
+                                "File [%s] does not exist - aborting" % path)
                         out.write(path + "\n")
                     input.close()
                 out.close()
                 shutil.move(tmpdocfile, docfile)
 
+
 def getDownloadData(el):
     data = []
     for e in xpath(el, "irc:data"):
-        data.append({ 
-            "url": xpath1(e, "irc:url/text()"), 
+        data.append({
+            "url": xpath1(e, "irc:url/text()"),
             "replace": xpath(e, "irc:replace"),
             "type": e.get("type"),
             "filter": xpath1(e, "irc:filter/text()")
         })
-    
+
     return data
 
 
@@ -389,20 +413,21 @@ def generate_trec(info, force):
     if not os.path.exists(path) or force:
         log("Downloading %s into [%s]..." % (info.id, path))
         createBaseDir(path)
-        
+
         tmpPath2 = tempfile.NamedTemporaryFile(delete=False)
         out = open(tmpPath2.name, 'w')
-        
+
         for data in info.data:
             # Get the downloading scheme, fallback on plain text
             f = downloadSchemes.get(data["type"], downloadSchemes.get("plain"))
             url = data["url"]
-            
+
             # Replace with regular expressions
             tmpPath = tempfile.NamedTemporaryFile(delete=True)
             f[0](tmpPath.name, url, f[1:])
 
-            patterns = [[re.compile(r.get("pattern")), r.get("with")] for r in data["replace"]]
+            patterns = [[re.compile(r.get("pattern")), r.get("with")]
+                        for r in data["replace"]]
             filter = None
             if data["filter"] is not None:
                 filter = re.compile(data["filter"])
@@ -412,12 +437,14 @@ def generate_trec(info, force):
                     line = p[0].sub(p[1], line)
                 if filter is None or filter.match(line):
                     out.write(line)
-                
+
         out.close()
         shutil.move(tmpPath2.name, path)
 
+
 class AbstractTopics(TaskObject):
-    def __init__(self, origin = None):
+
+    def __init__(self, origin=None):
         TaskObject.__init__(self, origin)
 
     def toJSON(self):
@@ -432,32 +459,46 @@ class AbstractTopics(TaskObject):
         xml = XML.topics(id=self.id, type=self.type)
         xml.set("{%s}path" % xpns, self.path)
         return xml
-        
+
+
 class TransformedTopics(AbstractTopics):
+
     def __init__(self, origin, engine):
         AbstractTopics.__init__(self, origin)
         self.engine = engine
-        self.path = "%s.indri.xml" % self.origin.path
-        self.type = "indri"
+        self.path = "%s.%s" % (self.origin.path, self.engine)
 
     def generate(self, opts):
         self.origin.generate(opts)
         if opts.generate_collection or not os.path.exists(self.path):
-            f = getattr(self, "generate_%s_%s" % (self.engine, re.sub("\.","_",self.origin.type)), None)
+            f = getattr(self, "generate_%s_%s" %
+                        (self.engine, re.sub("\.", "_", self.origin.type)), None)
             if f is None:
-                raise Exception("Cannot handle topics of type '%s' for %s" % (self.origin.type, self.engine))
+                raise Exception("Cannot handle topics of type '%s' for %s" %
+                                (self.origin.type, self.engine))
             else:
                 f(opts)
-            
+
+    def generate_json_trec(self, opts):
+        tmp = "%s.tmp" % self.path
+        topics = trec.Topics(open(self.origin.path))
+
+        f = open(tmp, "w")
+        f.write(json.dumps(topics.topics))
+        f.close()
+
+        shutil.move(tmp, self.path)
+
     def generate_indri_trec(self, opts):
         tmp = "%s.tmp" % self.path
         topics = trec.Topics(open(self.origin.path))
-        
+
         f = open(tmp, "w")
         f.write('<parameters>\n')
         for num, topic in topics.items():
             title = topic["title"]
-            f.write("<query><number>%s</number><text>%s</text></query>\n" % (num, re.sub('\W', " ", title)))
+            f.write("<query><number>%s</number><text>%s</text></query>\n" %
+                    (num, re.sub('\W', " ", title)))
             # print(topic)
         f.write('</parameters>\n')
         f.close()
@@ -466,22 +507,24 @@ class TransformedTopics(AbstractTopics):
 
     def generate_indri_trec_web_2009(self, opts):
         tmp = "%s.tmp" % self.path
-        
+
         f = open(tmp, "w")
         f.write('<parameters>\n')
         topics = etree.parse(self.origin.path)
         for topic in xpath(topics, "/*/topic"):
             num = topic.get("number")
             title = xpath1(topic, "query").text
-            f.write("<query><number>%s</number><text>%s</text></query>\n" % (num, re.sub('\W', " ", title)))
+            f.write("<query><number>%s</number><text>%s</text></query>\n" %
+                    (num, re.sub('\W', " ", title)))
             # print(topic)
         f.write('</parameters>\n')
         f.close()
 
         shutil.move(tmp, self.path)
-                
+
 
 class Topics(AbstractTopics):
+
     def __init__(self, doc, id):
         self.id = id
 
@@ -497,7 +540,7 @@ class Topics(AbstractTopics):
         self.data = getDownloadData(topics)
         self.type = topics.get("type")
         self.engineSuffix = None
-        
+
     def generate(self, opts):
         generate_trec(self, opts.download_topics)
 
@@ -506,7 +549,8 @@ class Topics(AbstractTopics):
 
 
 class AbstractAssessments(TaskObject):
-    def __init__(self, origin = None):
+
+    def __init__(self, origin=None):
         super(AbstractAssessments, self).__init__(self, origin)
 
     def transform(self, engine):
@@ -514,7 +558,7 @@ class AbstractAssessments(TaskObject):
 
     def restrict(self, documents):
         return RestrictedAssessements(self, documents)
-        
+
     def toXML(self):
         xml = XML.qrels(id=self.id, type=self.type)
         xml.set("{%s}path" % xpns, self.path)
@@ -528,20 +572,24 @@ class AbstractAssessments(TaskObject):
             "format": self.type
         }
 
+
 class RestrictedAssessements(AbstractAssessments):
+
     def __init__(self, origin, documents):
         self.documents = documents
         self.origin = origin
         self.path = "%s.R.%s" % (origin.path, documents.id)
         self.id = "%s@%s" % (origin.id, documents.id)
-        
+
     def generate(self, opts):
         self.origin.generate(opts)
         log("Filtering assessments for sub-collection %s" % self.documents.id)
-        
+
         doc = xpath1(self.documents.collection, "irc:document")
         if doc is None or doc.get("pattern") is None:
-            raise Exception("There is no pattern to filter relevance assessments for subcollection %s" % self.documents.id)
+            raise Exception(
+                "There is no pattern to filter relevance assessments for subcollection %s" %
+                self.documents.id)
         m = re.compile(doc.get("pattern"))
 
         if self.type == "trec":
@@ -561,10 +609,12 @@ class RestrictedAssessements(AbstractAssessments):
 
         shutil.move(tmp, self.path)
 
-        
+
 class Assessments(AbstractAssessments):
+
     """This represents Assessments
     """
+
     def __init__(self, doc, id):
         self.id = id
         qrels = findDefinition(doc, id, "assessments", "qrels")[0]
@@ -578,14 +628,16 @@ class Assessments(AbstractAssessments):
         self.type = qrels.get("type")
 
         self.data = getDownloadData(qrels)
-        
+
     def generate(self, opts):
         generate_trec(self, opts.download_assessments)
 
 
 class Task():
+
     """Object representing a set task
     """
+
     def __init__(self, doc, xml):
         self.documents = Documents(doc, find(xml, "collection").text)
         self.assessments = Assessments(doc, find(xml, "qrels").text)
@@ -618,21 +670,22 @@ class Task():
 
         self.assessments = self.assessments.restrict(self.documents)
         return self
-        
+
     def transform(self, engine):
         self.documents = self.documents.transform(engine)
         self.topics = self.topics.transform(engine)
         self.assessments = self.assessments.transform(engine)
-        return self # FIXME: should not return self but create a new object
+        return self  # FIXME: should not return self but create a new object
 
     def generate(self, opts):
         self.documents.generate(opts)
         self.topics.generate(opts)
         self.assessments.generate(opts)
 
-############
-### List ###
-############
+#
+# List ###
+#
+
 
 def command_list(opts):
     """ List all tasks
@@ -652,20 +705,22 @@ def command_list(opts):
     for name, e in sorted(tasks.items()):
         print(f % (name, e.get("description")))
 
-#################
-### Information #
-#################
+#
+# Information #
+#
 
 
 def command_info(args):
     print(("%30s\t%s" % ("Main directory", args.dir)))
-    print(("%30s\t%s" % ("Global configuration", os.path.join(args.dir, os.path.join("etc", "tasks.xml")))))
-    print(("%30s\t%s" % ("Location configuration", os.path.join(args.dir, os.path.join("etc", "local.xml")))))
+    print(("%30s\t%s" %
+          ("Global configuration", os.path.join(args.dir, os.path.join("etc", "tasks.xml")))))
+    print(("%30s\t%s" % ("Location configuration",
+          os.path.join(args.dir, os.path.join("etc", "local.xml")))))
 
 
-################
-### Evaluate ###
-################
+#
+# Evaluate ###
+#
 def find_bin(cmd):
     # Check the bin directory
     path = join(ircdir, "bin", cmd)
@@ -709,15 +764,15 @@ def command_evaluate(opts):
         raise Exception("Cannot evaluate qrels with type %s", qrels_type)
 
 
-###########
-### Get ###
-###########
+#
+# Get ###
+#
 
 def get_task(opts, generate):
     tasks = Tasks(opts.dir)
     taskid = opts.task
     task = tasks.getTask(taskid)
-    
+
     if opts.restrict:
         task = task.restrict(tasks.definitions, opts.restrict)
 
@@ -730,8 +785,9 @@ def get_task(opts, generate):
     if opts.json:
         print(json.dumps(task.toJSON(), indent=2))
     else:
-        sys.stdout.write(etree.tostring(task.toXML(), pretty_print=True, encoding="utf-8", xml_declaration=True).decode("utf-8"))
-        
+        sys.stdout.write(etree.tostring(task.toXML(), pretty_print=True,
+                         encoding="utf-8", xml_declaration=True).decode("utf-8"))
+
 
 def command_get(opts):
     get_task(opts, False)
@@ -822,12 +878,13 @@ downloadSchemes = {
     "plain": [getPlainFile]
 }
 
-############
-### Main ###
-############
+#
+# Main ###
+#
 
 
 class IRCException():
+
     def __init__(self):
         pass
 
@@ -844,35 +901,47 @@ def main(dir, argv):
     # list
     parser_list = subparsers.add_parser("list", help="List the tasks")
 
-    parser_list.add_argument("--full", "-f", dest="full", action="store_true", help="Prints a full list (otherwise print first level)")
-    parser_list.add_argument("--pattern", "-p", help="Pattern for task name where %% matches one level and %%%% matches all", default="^%")
+    parser_list.add_argument("--full", "-f", dest="full", action="store_true",
+                             help="Prints a full list (otherwise print first level)")
+    parser_list.add_argument(
+        "--pattern", "-p", help="Pattern for task name where %% matches one level and %%%% matches all", default="^%")
 
     # get & prepare
-    parser_prepare = subparsers.add_parser("prepare", help="Prepare resources for a task")
-    parser_prepare.add_argument("--no-file-check", "-n", dest="check_files", action="store_false", help="Skip checking file existence")
-    parser_prepare.add_argument("--download-assessments", dest="download_assessments", action="store_true", help="Force downloading assessments")
-    parser_prepare.add_argument("--download-topics", dest="download_topics", action="store_true", help="Force downloading topics")
-    parser_prepare.add_argument("--generate-collection", dest="generate_collection", action="store_true", help="Force generating collection file")
+    parser_prepare = subparsers.add_parser(
+        "prepare", help="Prepare resources for a task")
+    parser_prepare.add_argument("--no-file-check", "-n", dest="check_files",
+                                action="store_false", help="Skip checking file existence")
+    parser_prepare.add_argument(
+        "--download-assessments", dest="download_assessments",
+        action="store_true", help="Force downloading assessments")
+    parser_prepare.add_argument("--download-topics", dest="download_topics",
+                                action="store_true", help="Force downloading topics")
+    parser_prepare.add_argument(
+        "--generate-collection", dest="generate_collection",
+        action="store_true", help="Force generating collection file")
 
     parser_get = subparsers.add_parser("get", help="Get a task")
 
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
-    parser_evaluate.add_argument("--json", action="store_true", help="JSON input")
+    parser_evaluate.add_argument(
+        "--json", action="store_true", help="JSON input")
 
     for p in [parser_get, parser_prepare]:
-        p.add_argument("--engine", choices=["none", "indri"], default="none", help="Customize files with a given engine")
+        p.add_argument("--engine", choices=["none", "indri", "json"],
+                       default="none", help="Customize files with a given engine")
         p.add_argument("--json", action="store_true", help="JSON output")
         p.add_argument("--restrict", help="Restrict to a sub-collection")
         p.add_argument("task", help="The task name")
 
     parser_evaluate.add_argument("run", help="The run file to evaluate")
-    parser_evaluate.add_argument("assessments", nargs="?", help="The XML description of the assessments (as returned by ircollections)")
+    parser_evaluate.add_argument(
+        "assessments", nargs="?", help="The XML description of the assessments (as returned by ircollections)")
 
     args = parser.parse_args()
-    if args.command == None:
+    if args.command is None:
         parser.print_help()
         sys.exit()
-        
+
     # try:
     fname = "command_%s" % args.command.replace("-", "_")
     f = globals()[fname]
