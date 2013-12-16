@@ -737,7 +737,7 @@ def command_evaluate(opts):
             qrels = json.load(open(opts.assessments))
         else:
             qrels = json.loads(sys.stdin)
-        qrels_type = qrels["type"]
+        qrels_type = qrels["format"]
         qrels_path = qrels["path"]["value"]
 
     else:
@@ -747,7 +747,7 @@ def command_evaluate(opts):
             qrels = etree.parse(sys.stdin)
 
         qrels = qrels.getroot()
-        qrels_type = qrels.get("type")
+        qrels_type = qrels.get("{%s}type" % xpns)
         qrels_path = qrels.get("{%s}path" % xpns)
 
     runfile = opts.run
