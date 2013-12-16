@@ -36,16 +36,16 @@ module.add_schema(irc_dir.path("etc","irc.rnc"));
 // --- Get a task XML definition
 
 function get_task(p) { 
-	logger.info("IR task is [%s], restriction [%s]", p.id(), p.restrict());
+	logger.info("IR task is [%s], restriction [%s]", _(p.id), _(p.restrict));
 
-	args= [path(irc_bin), p.command(), "--json", "--engine", p.engine()];
-	if (p.restrict()) 
-		args = args.concat("--restrict", p.restrict());
+	args= [path(irc_bin), _(p.command), "--json", "--engine", _(p.engine)];
+	if (_(p.restrict)) 
+		args = args.concat("--restrict", _(p.restrict));
 					
 	// Run ircollections 
-	var command = args.concat(p.id());
+	var command = args.concat(_(p.id));
 	
-	logger.debug("arguments are %s; output=", command.toSource());
+	logger.debug("arguments are %s; output=", command.toString());
 
 	output = xpm.evaluate(command);
 	// Get the output
@@ -103,13 +103,13 @@ var task_evaluate = {
 
 	run: function(p) {
 	
-		var outputPath = p.out() ? p.out() : xpm.file(p.run() + ".eval");
+		var outputPath = _(p.out) ? _(p.out) : xpm.file(p.run() + ".eval");
 
-		var command = [path(irc_bin), "evaluate", "--json", file(p.run.path()), new ParameterFile("qrels", p.qrels.toSource())];
+		var command = [path(irc_bin), "evaluate", "--json", file(_(p.run.path)), new ParameterFile("qrels", p.qrels.toSource())];
 		
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
-				lock: [[ p.run.resource(), "READ_ACCESS" ]],
+				lock: [[ _(p.run.resource), "READ_ACCESS" ]],
 				stdout: outputPath,
 				description: r 
 			} 
