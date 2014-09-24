@@ -111,13 +111,16 @@ var task_evaluate = {
 			{ 
 				lock: [[ _(p.run.resource), "READ_ACCESS" ]],
 				stdout: outputPath,
-				description: r 
+				description: r,
+                env: {
+                    "PYTHONPATH": ""
+                }
 			} 
 		);
 
 		// Run the evaluation
 		var r = {
-            "type": "irc:run",
+            xp_type: "irc:run",
             resource: rsrc,
 		    path: outputPath,
             run: p.run,

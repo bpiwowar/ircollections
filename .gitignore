@@ -1,2 +1,3 @@
 etc/local.xml
 data
+__pycache__

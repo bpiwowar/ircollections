@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 #
 # Main file to access IR tasks
 # and manage them
 #
 
-import urllib.request
-import urllib.parse
-import urllib.error
 from lxml import etree
 from lxml.builder import ElementMaker
+import urllib.request
 
 import argparse
 import sys
@@ -66,8 +63,8 @@ def log(message):
 
 def xppath(path):
     return {
-        "type": "{%s}file" % xpns,
-        "value": path
+        "xp_type": "{%s}file" % xpns,
+        "xp_value": path
     }
 
 
@@ -246,16 +243,16 @@ class AbstractDocuments(TaskObject):
             subcollections.append(subcollection.toJSON())
 
         r = {
-            "type": "{%s}documents" % ircns,
+            "xp_type": "{%s}documents" % ircns,
             "id": self.id,
             "path": xppath(self.path),
-            "format": self.type,
+            "$format": self.type,
         }
         if subcollections:
             r["subcollections"] = subcollections
 
         if self.compression is not None:
-            r["compression"] = self.compression
+            r["$compression"] = self.compression
 
         return r
 
@@ -449,10 +446,10 @@ class AbstractTopics(TaskObject):
 
     def toJSON(self):
         return {
-            "type": "{%s}topics" % ircns,
+            "xp_type": "{%s}topics" % ircns,
             "id": self.id,
             "path": xppath(self.path),
-            "format": self.type
+            "$format": self.type,
         }
 
     def toXML(self):
@@ -467,60 +464,50 @@ class TransformedTopics(AbstractTopics):
         AbstractTopics.__init__(self, origin)
         self.engine = engine
         self.path = "%s.%s" % (self.origin.path, self.engine)
+        self.type = "%s.%s" % (self.origin.type, engine)
 
     def generate(self, opts):
         self.origin.generate(opts)
         if opts.generate_collection or not os.path.exists(self.path):
-            f = getattr(self, "generate_%s_%s" %
-                        (self.engine, re.sub("\.", "_", self.origin.type)), None)
+            # Create a topics object
+            topics = topics_create(format, path)
+
+            # Call the matching function transform_X
+            fname = "transform_%s" % re.sub("\.", "_", self.engine)
+            f = getattr(topics, fname, None)
             if f is None:
-                raise Exception("Cannot handle topics of type '%s' for %s" %
-                                (self.origin.type, self.engine))
-            else:
-                f(opts)
+                raise Exception("Cannot handle topics of type '%s' for %s [Could not find method %s in %s]" %
+                                (self.origin.type, self.engine, fname, topics))
 
-    def generate_json_trec(self, opts):
-        tmp = "%s.tmp" % self.path
-        topics = trec.Topics(open(self.origin.path))
+            tmp = "%s.tmp" % self.path
+            tmpfile = open(tmp, "w")
+            f(tmpfile)
+            tmpfile.close()
+            shutil.move(tmp, self.path)
 
-        f = open(tmp, "w")
-        f.write(json.dumps(topics.topics))
-        f.close()
+def topics_create(format, path):
+    if format == "trec":
+        return trec.Topics(open(path))
 
-        shutil.move(tmp, self.path)
+    raise Exception("Cannot handle topics of type '%s'" % format)
 
-    def generate_indri_trec(self, opts):
-        tmp = "%s.tmp" % self.path
-        topics = trec.Topics(open(self.origin.path))
 
-        f = open(tmp, "w")
-        f.write('<parameters>\n')
-        for num, topic in topics.items():
-            title = topic["title"]
-            f.write("<query><number>%s</number><text>%s</text></query>\n" %
-                    (num, re.sub('\W', " ", title)))
-            # print(topic)
-        f.write('</parameters>\n')
-        f.close()
+def topics_generate_indri_trec_web_2009(self, opts):
+    tmp = "%s.tmp" % self.path
 
-        shutil.move(tmp, self.path)
+    f = open(tmp, "w")
+    f.write('<parameters>\n')
+    topics = etree.parse(self.origin.path)
+    for topic in xpath(topics, "/*/topic"):
+        num = topic.get("number")
+        title = xpath1(topic, "query").text
+        f.write("<query><number>%s</number><text>%s</text></query>\n" %
+                (num, re.sub('\W', " ", title)))
+        # print(topic)
+    f.write('</parameters>\n')
+    f.close()
 
-    def generate_indri_trec_web_2009(self, opts):
-        tmp = "%s.tmp" % self.path
-
-        f = open(tmp, "w")
-        f.write('<parameters>\n')
-        topics = etree.parse(self.origin.path)
-        for topic in xpath(topics, "/*/topic"):
-            num = topic.get("number")
-            title = xpath1(topic, "query").text
-            f.write("<query><number>%s</number><text>%s</text></query>\n" %
-                    (num, re.sub('\W', " ", title)))
-            # print(topic)
-        f.write('</parameters>\n')
-        f.close()
-
-        shutil.move(tmp, self.path)
+    shutil.move(tmp, self.path)
 
 
 class Topics(AbstractTopics):
@@ -731,13 +718,19 @@ def find_bin(cmd):
     return cmd
 
 
+def command_get_topics(opts):
+    j = json.load(open(opts.topics))
+    format = j["$format"]
+    topics = topics_create(format, j["path"]["xp_value"])
+    getattr(topics, "transform_%s" % opts.format)(sys.stdout)
+
 def command_evaluate(opts):
     if opts.json:
         if opts.assessments:
             qrels = json.load(open(opts.assessments))
         else:
             qrels = json.loads(sys.stdin)
-        qrels_type = qrels["type"]
+        qrels_type = qrels["format"]
         qrels_path = qrels["path"]["value"]
 
     else:
@@ -747,7 +740,7 @@ def command_evaluate(opts):
             qrels = etree.parse(sys.stdin)
 
         qrels = qrels.getroot()
-        qrels_type = qrels.get("type")
+        qrels_type = qrels.get("{%s}type" % xpns)
         qrels_path = qrels.get("{%s}path" % xpns)
 
     runfile = opts.run
@@ -905,6 +898,12 @@ def main(dir, argv):
                              help="Prints a full list (otherwise print first level)")
     parser_list.add_argument(
         "--pattern", "-p", help="Pattern for task name where %% matches one level and %%%% matches all", default="^%")
+
+
+    # Get topics
+    get_topics = subparsers.add_parser("get-topics", help="Get topics")
+    get_topics.add_argument("--format", choices=["indri", "json"], default="json")
+    get_topics.add_argument("topics", type=str, help="Topic description in JSON (either a file or a string)")
 
     # get & prepare
     parser_prepare = subparsers.add_parser(

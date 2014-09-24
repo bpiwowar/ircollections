@@ -3,7 +3,7 @@
 
 from html.parser import HTMLParser
 import re
-
+import json
 
 class TopicParser(HTMLParser):
 
@@ -52,7 +52,6 @@ class TopicParser(HTMLParser):
         # sys.stderr.write(">>> %s\n" % data)
         self.currentdata = self.currentdata + data
 
-
 class Topics:
 
     def __init__(self, fh):
@@ -62,3 +61,15 @@ class Topics:
 
     def items(self):
         return self.topics.items()
+
+    def transform_json(self, out):
+        out.write(json.dumps(self.topics))
+
+    def transform_indri(self, out):
+        out.write('<parameters>\n')
+        for num, topic in topics.items():
+            title = topic["title"]
+            out.write("<query><number>%s</number><text>%s</text></query>\n" %
+                    (num, re.sub('\W', " ", title)))
+            # print(topic)
+        out.write('</parameters>\n')
