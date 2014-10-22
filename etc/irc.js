@@ -30,31 +30,27 @@ var module_irc = {
 };
 
 module = xpm.add_module(module_irc);
-module.add_schema(irc_dir.path("etc","irc.rnc"));
 
 
 // --- Get a task XML definition
 
 function get_task(p) { 
-	logger.info("IR task is [%s], restriction [%s]", _(p.id), _(p.restrict));
+	logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
-	args= [path(irc_bin), _(p.command), "--json", "--engine", _(p.engine)];
-	if (_(p.restrict)) 
-		args = args.concat("--restrict", _(p.restrict));
+	args= [path(irc_bin), $(p.command), "--json", "--engine", $(p.engine)];
+	if ($(p.restrict)) 
+		args = args.concat("--restrict", $(p.restrict));
 					
 	// Run ircollections 
-	var command = args.concat(_(p.id));
+	var command = args.concat($(p.id));
 	
 	logger.debug("arguments are %s; output=", command.toString());
 
 	output = xpm.evaluate(command);
 	// Get the output
-	if (output[0] != 0) 
-		throw "Error while running get-task: error code is " 
-			+ output[0] + ", command was [" + command.toString() + "]";
 		
-    logger.debug("Output is: %s", output[1]);
-	return JSON.parse(output[1].trim());	
+    logger.debug("Output is: %s", output);
+	return JSON.parse(output.trim());	
 }
 
 tasks("irc:get-task") = {
@@ -91,9 +87,7 @@ var task_evaluate = {
 
     module: module_irc.id,
 
-	description: <>
-		<p>Evaluate a run</p>
-	</>,
+	description: "<p>Evaluate a run</p>",
 
 	inputs: {
 	    "run": { json: "irc:run", help: "The path to the run file to evaluate" },
@@ -102,26 +96,21 @@ var task_evaluate = {
     },
 
 	run: function(p) {
-	
-		var outputPath = _(p.out) ? _(p.out) : xpm.file(p.run() + ".eval");
-
-		var command = [path(irc_bin), "evaluate", "--json", file(_(p.run.path)), new ParameterFile("qrels", p.qrels.toSource())];
+	   var outputPath = p.out ? $(p.out) : $(p.run.path).add_extension(".eval");
+       logger.info("Output path: %s", outputPath);
+		var command = [path(irc_bin), "evaluate", "--json", $(p.run.path), new ParameterFile("qrels", p.qrels.toSource())];
 		
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
-				lock: [[ _(p.run.resource), "READ_ACCESS" ]],
+				lock: [[ $$(p.run), "READ_ACCESS" ]],
 				stdout: outputPath,
-				description: r,
-                env: {
-                    "PYTHONPATH": ""
-                }
 			} 
 		);
 
 		// Run the evaluation
 		var r = {
-            xp_type: "irc:run",
-            resource: rsrc,
+            $type: "irc:run",
+            $resource: rsrc,
 		    path: outputPath,
             run: p.run,
             qrels: p.qrels
@@ -133,3 +122,31 @@ var task_evaluate = {
 
 
 xpm.add_task_factory(task_evaluate);
+
+
+/**
+ * Evaluate a run : hypotheses about evaluation are the same than
+ * for adhoc runs - there are topics, evaluation metrics, a run file
+ * and an assessmentr file
+ */
+tasks("irc:get-topics") = {
+    module: module_irc.id,
+    inputs: {
+        "topics": { json: "irc:topics", help: "The topics", copy: true },
+        "format": { value: "xp:string", help: "The output format", copy: "$format" },
+    },
+
+    run: function(p) {
+        var command = [path(irc_bin), "get-topics", "--format", $(p.format), new ParameterFile("topics", p.topics.toSource())];
+
+        var output = xpm.evaluate(command);
+
+        return {
+            $type: "irc:topic-set",
+            data: JSON.parse(output.trim())
+        };
+    }
+
+};
+
+
