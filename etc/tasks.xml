@@ -90,8 +90,7 @@
         <topics id="trec.1.adhoc" type="trec" path="trec/trec1/adhoc/trec1.topics.51-100">
             <property parts="desc"/>
             <data type="gz">
-                <url>file:///Users/bpiwowar/Documents/projects/ircollections/topics.51-100.gz</url>
-                <!-- <url>http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url> -->
+                <url>http://trec.nist.gov/data/topics_eng/topics.51-100.gz</url>
                 <replace pattern="Number:(\s+)0" with="Number: \1"/>
             </data>
             <!-- We need to replace topic numbers to match qrels -->
