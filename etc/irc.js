@@ -57,10 +57,7 @@ tasks("irc:get-task") = {
     module: module_irc.id,
     
 	// The description of this experiment
-	description: <>
-        <p>Get the full description of an IR collection, including 
-        the list of files, the topics, and the qrels</p>
-    </>,
+	description: "<p>Get the full description of an IR collection, including the list of files, the topics, and the qrels</p>",
     
     inputs: {
         command: { value: "xp:string", "default": "prepare"},
