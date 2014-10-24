@@ -249,7 +249,7 @@ class AbstractDocuments(TaskObject):
             "$format": self.type,
         }
         if subcollections:
-            r["subcollections"] = subcollections
+            r["$subcollections"] = subcollections
 
         if self.compression is not None:
             r["$compression"] = self.compression
