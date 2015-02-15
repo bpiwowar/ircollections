@@ -53,7 +53,7 @@ function get_task(p) {
 	return JSON.parse(output.trim());	
 }
 
-tasks("irc:get-task") = {
+tasks.add("irc:get-task", {
     module: module_irc.id,
     
 	// The description of this experiment
@@ -69,7 +69,7 @@ tasks("irc:get-task") = {
     output: qname(irc, "task"),
     
     run: get_task
-};
+});
 
 
 
@@ -94,9 +94,10 @@ var task_evaluate = {
 
 	run: function(p) {
 	   var outputPath = p.out ? $(p.out) : $(p.run.path).add_extension(".eval");
-       logger.info("Output path: %s", outputPath);
+       logger.debug("Output path: %s", outputPath);
+       logger.info("Run: Resource %s", p.run.$resource)
 		var command = [path(irc_bin), "evaluate", "--json", $(p.run.path), new ParameterFile("qrels", p.qrels.toSource())];
-		
+
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
 				lock: [[ $$(p.run), "READ_ACCESS" ]],
