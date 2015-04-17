@@ -134,7 +134,7 @@ def findDefinition(definitions, id, parentType, type):
 
 def absolutePath(*args):
     """Returns the absolute path of a path relative to the IR collections base directory"""
-    return os.path.join(ircdir, os.path.join(*args))
+    return os.path.abspath(os.path.join(ircdir, os.path.join(*args)))
 
 
 def xpath(node, path):
@@ -327,7 +327,7 @@ class Documents(AbstractDocuments):
                 self.subcollections.append(Documents(doc, ref))
 
         # Sets the base path for the collection (attribute basepath)
-        self.basepath = self.collection.get("basepath")
+        self.basepath = absolutePath(self.collection.get("basepath"))
         if self.basepath is None:
             self.basepath = absolutePath("data", "irc.docs", self.id)
 
