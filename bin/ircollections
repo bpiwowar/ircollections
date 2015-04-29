@@ -744,13 +744,17 @@ def command_evaluate(opts):
         qrels_path = qrels.get("{%s}path" % xpns)
 
     runfile = opts.run
+    details = opts.details
 
     if qrels_type == "trec":
         trec_eval = find_bin("trec_eval")
 
         if qrels_path is None:
             raise Exception("Cannot retrieve the assessments path")
-        command = [trec_eval, qrels_path, runfile]
+        command = [trec_eval]
+        if details:
+            command.extend(["-q"])
+        command.extend([qrels_path, runfile])
         code = subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
         sys.exit(code)
     else:
@@ -922,6 +926,7 @@ def main(dir, argv):
     parser_get = subparsers.add_parser("get", help="Get a task")
 
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
+    parser_evaluate.add_argument("--details", action="store_true", help="Query level performance")
     parser_evaluate.add_argument(
         "--json", action="store_true", help="JSON input")
 

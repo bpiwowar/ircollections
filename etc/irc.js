@@ -89,6 +89,7 @@ var task_evaluate = {
 	inputs: {
 	    "run": { json: "irc:run", help: "The path to the run file to evaluate" },
         "qrels": { json: "irc:qrels", help: "The relevance assessments" },
+        "details": { json: "xp:boolean", help: "Whether details results should be returned (query level)" },
         "out": { value: "xp:file", help: "The output file", optional: true }
     },
 
@@ -96,7 +97,11 @@ var task_evaluate = {
 	   var outputPath = p.out ? $(p.out) : $(p.run.path).add_extension(".eval");
        logger.debug("Output path: %s", outputPath);
        logger.info("Run: Resource %s", p.run.$resource)
-		var command = [path(irc_bin), "evaluate", "--json", $(p.run.path), new ParameterFile("qrels", p.qrels.toSource())];
+		var command = [path(irc_bin), "evaluate", "--json"];
+        if ($(p.details)) {
+            command.push("--details");
+        }
+        command.push($(p.run.path), new ParameterFile("qrels", p.qrels.toSource()));
 
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{ 
