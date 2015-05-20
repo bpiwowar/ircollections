@@ -724,7 +724,8 @@ def command_get_topics(opts):
     topics = topics_create(format, j["path"]["$value"])
     getattr(topics, "transform_%s" % opts.format)(sys.stdout)
 
-def command_evaluate(opts):
+def get_qrels(opts):
+    # Get the assessments
     if opts.json:
         if opts.assessments:
             qrels = json.load(open(opts.assessments))
@@ -742,23 +743,44 @@ def command_evaluate(opts):
         qrels = qrels.getroot()
         qrels_type = qrels.get("{%s}type" % xpns)
         qrels_path = qrels.get("{%s}path" % xpns)
+        return qrels, qrels_type, qrels_path
 
-    runfile = opts.run
-    details = opts.details
-
+    # Returns the evaluator
     if qrels_type == "trec":
         trec_eval = find_bin("trec_eval")
 
         if qrels_path is None:
             raise Exception("Cannot retrieve the assessments path")
         command = [trec_eval]
-        if details:
+        if opts.details:
             command.extend(["-q"])
-        command.extend([qrels_path, runfile])
-        code = subprocess.call(command, stdout=sys.stdout, stderr=sys.stderr)
-        sys.exit(code)
-    else:
-        raise Exception("Cannot evaluate qrels with type %s", qrels_type)
+        command.extend([qrels_path, ""])
+
+        def evaluator(runfile, out):
+            command[-1] = runfile
+            return subprocess.call(command, stdout=out, stderr=sys.stderr)
+
+        return evaluator
+    raise Exception("Cannot evaluate qrels with type %s", qrels_type)
+
+    return evaluator
+
+def command_evaluate(opts):
+    evaluator = get_qrels(opts)
+    code = evaluator(opts.run, sys.stdout)
+    sys.exit(code)
+
+def command_evaluate_runs(opts):
+    evaluator = get_qrels(opts)
+
+    runs = json.load(open(opts.run))
+    for run in runs:
+        runpath = run["path"]
+        with open("%s%s" % (runpath, opts.extension), "w") as output:
+            sys.stderr.write("Evaluating %s\n" % runpath)
+            code = evaluator(runpath, output)
+            if code != 0:
+                sys.exit(code)
 
 
 #
@@ -925,10 +947,17 @@ def main(dir, argv):
 
     parser_get = subparsers.add_parser("get", help="Get a task")
 
+    # Evaluate
     parser_evaluate = subparsers.add_parser("evaluate", help="Evaluate a run")
-    parser_evaluate.add_argument("--details", action="store_true", help="Query level performance")
-    parser_evaluate.add_argument(
-        "--json", action="store_true", help="JSON input")
+    parser_evaluate_runs = subparsers.add_parser("evaluate-runs", help="Evaluate a series of runs")
+
+    for p in [parser_evaluate, parser_evaluate_runs]:
+        p.add_argument("--details", action="store_true", help="Query level performance")
+        p.add_argument("--json", action="store_true", help="JSON input (for tasks)")
+        p.add_argument("run", help="The run file to evaluate")
+        p.add_argument("assessments", nargs="?", help="The XML (or JSON) description of the assessments (as returned by ircollections)")
+
+    parser_evaluate_runs.add_argument("--extension", default=".eval", help="The extension to add to run files")
 
     for p in [parser_get, parser_prepare]:
         p.add_argument("--engine", choices=["none", "indri", "json"],
@@ -937,9 +966,6 @@ def main(dir, argv):
         p.add_argument("--restrict", help="Restrict to a sub-collection")
         p.add_argument("task", help="The task name")
 
-    parser_evaluate.add_argument("run", help="The run file to evaluate")
-    parser_evaluate.add_argument(
-        "assessments", nargs="?", help="The XML description of the assessments (as returned by ircollections)")
 
     args = parser.parse_args()
     if args.command is None:
