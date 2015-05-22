@@ -178,7 +178,7 @@ xpm.add_task_factory(task_evaluate);
  * for adhoc runs - there are topics, evaluation metrics, a run file
  * and an assessmentr file
  */
-tasks("irc:get-topics") = {
+tasks.add("irc:get-topics", {
     module: module_irc.id,
     inputs: {
         "topics": { json: "irc:topics", help: "The topics", copy: true },
@@ -196,6 +196,6 @@ tasks("irc:get-topics") = {
         };
     }
 
-};
+});
 
 
