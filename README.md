@@ -1,32 +1,51 @@
 # Introduction
 
-This projects aims at grouping utilities to deal with the numerous and heterogenous information retrieval (IR) test collections, and to automate/standardize common operations like downloading topics, assessments or evaluating.
+This projects aims at grouping utilities to deal with the numerous and heterogenous datasets, as for example in Information Retrieval tasks.
+For each type of task, it tries to automate/standardize common operations like downloading topics, assessments or evaluating.
 
 - Each task is uniquely identified by an ID, e.g. `ir/trec/2009/web/adhoc`
-- Each task is associated to a definition containing all the necessary information; tasks can be output in JSON or XML
+- Each task is associated to a definition containing all the necessary information; tasks can be output in JSON
 - Resources (e.g. assessments or topics, when available online) can be automatically processed
 - Resources can be transformed before being fed to a particular software (e.g. [Indri](http://www.lemurproject.org/indri/))
-- Integrates with [experimaestro](http://experimaestro.sf.net) 
+- Integrates with the [experimaestro](http://experimaestro.sf.net) experiment manager
 
-*Note that this is beta software*, in particular the XML format is still subject to change. Please contact me if you use the software so I can keep you in the loop when doing so.
+*Note that this is beta software*, in particular the JSON format is still subject to change. Please contact me if you use the software so I can keep you in the loop when doing so.
 
 
 ## Example of a task description
 
 The IR task trec/1992/adhoc is associated with the following XML description
 
-    <?xml version='1.0' encoding='utf-8'?>
-    <task xmlns:xp="http://experimaestro.lip6.fr" xmlns="http://ircollections.sourceforge.net">
-      <documents id="trec.1.adhoc" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.1.adhoc" compression="gzip">
-        <documents id="trec.ap8889" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.ap8889" compression="gzip"/>
-        <documents id="trec.doe1" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.doe1" compression="gzip"/>
-        <documents id="trec.fr8889" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.fr8889" compression="gzip"/>
-        <documents id="trec.wsj8792" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.wsj8792" compression="gzip"/>
-        <documents id="trec.ziff12" type="trec" xp:path="IRCOLLECTIONS_DIR/irc.cols/trec.ziff12" compression="gzip"/>
-      </documents>
-      <topics id="trec.1.adhoc" type="trec" xp:path="IRCOLLECTIONS_DIR/trec/trec1/adhoc/trec1.topics.51-100"/>
-      <qrels id="trec.1.adhoc" type="trec" xp:path="IRCOLLECTIONS_DIR/trec/trec1/adhoc/qrels.51-100"/>
-    </task>
+```json
+  "id": "trec.1.adhoc",
+  "type": "{http://ircollections.sourceforge.net}task",
+  "documents": {
+    "$compression": "xz",
+    "$type": "{http://ircollections.sourceforge.net}documents",
+    "$format": "trec",
+    "path": {
+      "$value": "/Users/bpiwowar/development/ircollections/data/irc.cols/trec.1.adhoc",
+      "$type": "{http://experimaestro.lip6.fr}file"
+    },
+  "qrels": {
+    "format": "trec",
+    "$type": "{http://ircollections.sourceforge.net}qrels",
+    "id": "trec.2.adhoc",
+    "path": {
+      "$value": "/Users/bpiwowar/development/ircollections/data/trec/trec2/adhoc/qrels.101-150",
+      "$type": "{http://experimaestro.lip6.fr}file"
+    }
+  },
+  "topics": {
+    "$format": "trec",
+    "$type": "{http://ircollections.sourceforge.net}topics",
+    "id": "trec.2.adhoc",
+    "path": {
+      "$value": "/Users/bpiwowar/development/ircollections/data/trec/trec2/adhoc/trec2.topics.101-150",
+      "$type": "{http://experimaestro.lip6.fr}file"
+    }
+  }
+```
 
 The description defines three resources:
 
@@ -38,8 +57,8 @@ The description defines three resources:
 
 The code can accessed from https://github.com/bpiwowar/ircollections. You can either clone the git repository (useful to get fresh updates and to contribute).
 
-You have then to customize the configuration file in `etc/local.xml` using the provided template `etc/local.xml.tpl`. This file can override any setting set in the `tasks.xml` 
-file. The `tasks.xml` should not be modified unless you want to add a new collection. 
+You have then to customize the configuration file in `etc/local.xml` using the provided template `etc/local.xml.tpl`. This file can override any setting set in the `tasks.xml`
+file. The `tasks.xml` should not be modified unless you want to add a new collection.
 To modify a definition, you can refer to the description of the XML format below
 
     <collections>
@@ -49,7 +68,7 @@ To modify a definition, you can refer to the description of the XML format below
 
       <!-- ClueWeb has been compressed -->
       <collection id="trec.clueweb09b" compression="bgzip"/>
-      
+
     </collections>
 
 # Description of the XML format
@@ -65,6 +84,8 @@ A compression format can be:
 - bgzip: [Block gzip](http://blastedbio.blogspot.fr/2011/11/bgzf-blocked-bigger-better-gzip.html) are gzip-compatible but have a constant random access time (at the cost of compression ratio)
 
 ## Tasks
+
+[Information Retrieval]
 
 ### Ad-hoc task
 

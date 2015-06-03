@@ -37,7 +37,7 @@ module = xpm.add_module(module_irc);
 function get_task(p) {
 	logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
-	args= [path(irc_bin), $(p.command), "--json", "--engine", $(p.engine)];
+	args= [path(irc_bin), $(p.command), "--engine", $(p.engine)];
 	if ($(p.restrict))
 		args = args.concat("--restrict", $(p.restrict));
 
@@ -96,7 +96,7 @@ var task_evaluate = {
 	run: function(p) {
 	   var outputPath = p.out ? $(p.out) : $(p.run.path).add_extension(".eval");
        logger.debug("Output path: %s [%s]", outputPath, $$(p.run));
-		var command = [path(irc_bin), "evaluate", "--json"];
+		var command = [path(irc_bin), "evaluate"];
         if ($(p.details)) {
             command.push("--details");
         }
@@ -147,7 +147,7 @@ var task_evaluate = {
 
     run: function(p) {
         var taskpath = $(p.basedir) ? this.unique_file($(p.basedir), "irc.evaluate", p) :  this.unique_file("irc.evaluate", p);
-        var command = [path(irc_bin), "evaluate-runs", "--json"];
+        var command = [path(irc_bin), "evaluate-runs"];
         if ($(p.details)) {
             command.push("--details");
         }

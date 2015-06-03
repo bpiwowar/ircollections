@@ -1,0 +1,7 @@
+site_name: Datasets manager
+theme: readthedocs
+site_description: datasets Dataset management
+pages:
+- [index.md, Home]
+- [common.md, General information]
+- [ir.md, Information Retrieval]

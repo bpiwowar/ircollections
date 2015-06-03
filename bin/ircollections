@@ -347,7 +347,7 @@ class Documents(AbstractDocuments):
                     l += sc.getRelFiles()
                 return l
 
-            return [os.path.join(absolutePath("docs"), "%s.relfiles" % self.id)]
+            return [os.path.join(absolutePath("datasource/ir"), "%s.relfiles" % self.id)]
         return self.aliased_from.getRelFiles()
 
     def getBasePath(self):
@@ -726,24 +726,12 @@ def command_get_topics(opts):
 
 def get_qrels(opts):
     # Get the assessments
-    if opts.json:
-        if opts.assessments:
-            qrels = json.load(open(opts.assessments))
-        else:
-            qrels = json.loads(sys.stdin)
-        qrels_type = qrels["format"]
-        qrels_path = qrels["path"]["$value"]
-
+    if opts.assessments:
+        qrels = json.load(open(opts.assessments))
     else:
-        if opts.assessments:
-            qrels = etree.parse(opts.assessments)
-        else:
-            qrels = etree.parse(sys.stdin)
-
-        qrels = qrels.getroot()
-        qrels_type = qrels.get("{%s}type" % xpns)
-        qrels_path = qrels.get("{%s}path" % xpns)
-        return qrels, qrels_type, qrels_path
+        qrels = json.loads(sys.stdin)
+    qrels_type = qrels["format"]
+    qrels_path = qrels["path"]["$value"]
 
     # Returns the evaluator
     if qrels_type == "trec":
@@ -801,12 +789,7 @@ def get_task(opts, generate):
     if generate:
         task.generate(opts)
 
-    if opts.json:
-        print(json.dumps(task.toJSON(), indent=2))
-    else:
-        sys.stdout.write(etree.tostring(task.toXML(), pretty_print=True,
-                         encoding="utf-8", xml_declaration=True).decode("utf-8"))
-
+    print(json.dumps(task.toJSON(), indent=2))
 
 def command_get(opts):
     get_task(opts, False)
@@ -953,7 +936,6 @@ def main(dir, argv):
 
     for p in [parser_evaluate, parser_evaluate_runs]:
         p.add_argument("--details", action="store_true", help="Query level performance")
-        p.add_argument("--json", action="store_true", help="JSON input (for tasks)")
         p.add_argument("run", help="The run file to evaluate")
         p.add_argument("assessments", nargs="?", help="The XML (or JSON) description of the assessments (as returned by ircollections)")
 
@@ -962,7 +944,6 @@ def main(dir, argv):
     for p in [parser_get, parser_prepare]:
         p.add_argument("--engine", choices=["none", "indri", "json"],
                        default="none", help="Customize files with a given engine")
-        p.add_argument("--json", action="store_true", help="JSON output")
         p.add_argument("--restrict", help="Restrict to a sub-collection")
         p.add_argument("task", help="The task name")
 
