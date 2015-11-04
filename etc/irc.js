@@ -23,10 +23,7 @@ var module_irc = {
 	url: "http://ircollections.sourceforge.net",
 	id: qname(irc, "main"),
 
-	description: <p>
-		This contains the task associated with the IR collections project, which aims at
-		providing an unique interface for running ad-hoc IR experiments.
-	</p>
+	description: "<p>This contains the task associated with the IR collections project, which aims at providing an unique interface for running ad-hoc IR experiments.</p>"
 };
 
 module = xpm.add_module(module_irc);
@@ -35,7 +32,7 @@ module = xpm.add_module(module_irc);
 // --- Get a task XML definition
 
 function get_task(p) {
-	logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
+    logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
 	args= [path(irc_bin), $(p.command), "--engine", $(p.engine)];
 	if ($(p.restrict))
@@ -44,12 +41,12 @@ function get_task(p) {
 	// Run ircollections
 	var command = args.concat($(p.id));
 
-	logger.debug("arguments are %s; output=", command.toString());
+	logger.debug("arguments are %s", command.toString());
 
+    // Get the output
 	output = xpm.evaluate(command);
-	// Get the output
-
     logger.debug("Output is: %s", output);
+
 	return JSON.parse(output.trim());
 }
 
