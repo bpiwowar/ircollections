@@ -470,7 +470,7 @@ class TransformedTopics(AbstractTopics):
         self.origin.generate(opts)
         if opts.generate_collection or not os.path.exists(self.path):
             # Create a topics object
-            topics = topics_create(format, path)
+            topics = topics_create(self.type, self.path)
 
             # Call the matching function transform_X
             fname = "transform_%s" % re.sub("\.", "_", self.engine)
