@@ -1,4 +1,4 @@
-<tasks xmlns="http://ircollections.sourceforge.net">
+<tasks xmlns="net.bpiwowar.irc">
 <!-- 
 	This file contains local settings for IR collections.
 	

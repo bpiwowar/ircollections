@@ -31,8 +31,8 @@ import trec
 ircdir = os.path.dirname(
     os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
 
-xpns = "http://experimaestro.lip6.fr"
-ircns = "http://ircollections.sourceforge.net"
+xpns = "net.bpiwowar.xpm"
+ircns = "net.bpiwowar.irc"
 
 ircNamespaces = {"irc": ircns, "xp": xpns}
 

@@ -12,7 +12,7 @@ logger.info("IR collections directory is %s", irc_dir);
 
 var irc_bin = irc_dir.path("bin", "ircollections");
 
-var irc = new Namespace("http://ircollections.sourceforge.net");
+var irc = new Namespace("net.bpiwowar.irc")
 
 xpm.set_property("namespace", irc);
 
@@ -34,7 +34,7 @@ module = xpm.add_module(module_irc);
 function get_task(p) {
     logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
-	args= [path(irc_bin), $(p.command), "--engine", $(p.engine)];
+	args= [irc_bin, $(p.command), "--json", "--engine", $(p.engine)];
 	if ($(p.restrict))
 		args = args.concat("--restrict", $(p.restrict));
 
