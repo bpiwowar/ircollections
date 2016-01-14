@@ -6,7 +6,7 @@
 */
 
 var irc_dir = xpm.get_script_file().get_ancestor(2);
-var logger = xpm.logger("net.sf.ircollections");
+var logger = xpm.logger("net.bpiwowar.irc");
 
 logger.info("IR collections directory is %s", irc_dir);
 

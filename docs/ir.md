@@ -6,11 +6,11 @@ The IR task trec/1992/adhoc is associated with the following JSON description (s
 ```json
 {
   "id": "trec.1.adhoc",
-  "type": "{http://ircollections.sourceforge.net}task",
+  "type": "{net.bpiwowar.irc}task",
 
   "documents": {
     "$compression": "xz",
-    "$type": "{http://ircollections.sourceforge.net}documents",
+    "$type": "{net.bpiwowar.irc}documents",
     "$format": "trec",
     "path": {
       "$value": "/Users/bpiwowar/development/ircollections/data/irc.cols/trec.1.adhoc",
@@ -20,7 +20,7 @@ The IR task trec/1992/adhoc is associated with the following JSON description (s
 
   "qrels": {
     "format": "trec",
-    "$type": "{http://ircollections.sourceforge.net}qrels",
+    "$type": "{net.bpiwowar.irc}qrels",
     "id": "trec.2.adhoc",
     "path": {
       "$value": "/Users/bpiwowar/development/ircollections/data/trec/trec2/adhoc/qrels.101-150",
@@ -30,7 +30,7 @@ The IR task trec/1992/adhoc is associated with the following JSON description (s
 
   "topics": {
     "$format": "trec",
-    "$type": "{http://ircollections.sourceforge.net}topics",
+    "$type": "{net.bpiwowar.irc}topics",
     "id": "trec.2.adhoc",
     "path": {
       "$value": "/Users/bpiwowar/development/ircollections/data/trec/trec2/adhoc/trec2.topics.101-150",
