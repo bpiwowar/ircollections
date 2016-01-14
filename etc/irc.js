@@ -34,7 +34,7 @@ module = xpm.add_module(module_irc);
 function get_task(p) {
     logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
-	args= [irc_bin, $(p.command), "--json", "--engine", $(p.engine)];
+	args= [irc_bin, $(p.command), "--engine", $(p.engine)];
 	if ($(p.restrict))
 		args = args.concat("--restrict", $(p.restrict));
 
