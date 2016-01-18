@@ -91,17 +91,17 @@ var task_evaluate = {
     },
 
 	run: function(p) {
-	   var outputPath = p.out ? $(p.out) : $(p.run.path).add_extension(".eval");
-       logger.debug("Output path: %s [%s]", outputPath, $$(p.run));
+	   var outputPath = $(p.out) ? $(p.out) : $(p.run.path).add_extension(".eval");
+       logger.info("Output path: %s [%s]", outputPath, $$(p.run));
 		var command = [path(irc_bin), "evaluate"];
         if ($(p.details)) {
             command.push("--details");
         }
-        command.push($(p.run.path), new ParameterFile("qrels", p.qrels.toSource()));
+        command.push($(p.run.path), new JsonParameterFile("qrels", p.qrels));
 
 		var rsrc = xpm.command_line_job(outputPath, command,
 			{
-				lock: [[ $$(p.run), "READ_ACCESS" ]],
+				lock: get_locks(p),
 				stdout: outputPath,
 			}
 		);
