@@ -721,7 +721,7 @@ def find_bin(cmd):
 def command_get_topics(opts):
     j = json.load(open(opts.topics))
     format = j["$format"]
-    topics = topics_create(format, j["path"]["$value"])
+    topics = topics_create(format, j["path"])
     getattr(topics, "transform_%s" % opts.format)(sys.stdout)
 
 def get_qrels(opts):
@@ -731,7 +731,7 @@ def get_qrels(opts):
     else:
         qrels = json.loads(sys.stdin)
     qrels_type = qrels["format"]
-    qrels_path = qrels["path"]["$value"]
+    qrels_path = qrels["path"]
 
     # Returns the evaluator
     if qrels_type == "trec":
