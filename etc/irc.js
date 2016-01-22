@@ -57,10 +57,10 @@ tasks.add("irc:get-task", {
 	description: "<p>Get the full description of an IR collection, including the list of files, the topics, and the qrels</p>",
 
     inputs: {
-        command: { value: "xp:string", "default": "prepare"},
-        id: { value: "xp:string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
-        restrict: { value: "xp:string", help: "Restrict to a subcollection", optional: true },
-        engine: { value: "xp:string", help: "Transformation engine to use (none, indri)", default: "none" }
+        command: { value: "string", "default": "prepare"},
+        id: { value: "string", help: "The name of the IR task (e.g. trec.7/adhoc)" },
+        restrict: { value: "string", help: "Restrict to a subcollection", optional: true },
+        engine: { value: "string", help: "Transformation engine to use (none, indri)", default: "none" }
     },
 
     output: qname(irc, "task"),
@@ -86,8 +86,8 @@ var task_evaluate = {
 	inputs: {
 	    "run": { json: "irc:run", help: "The path to the run file to evaluate" },
         "qrels": { json: "irc:qrels", help: "The relevance assessments" },
-        "details": { json: "xp:boolean", help: "Whether details results should be returned (query level)" },
-        "out": { value: "xp:file", help: "The output file", optional: true }
+        "details": { json: "boolean", help: "Whether details results should be returned (query level)" },
+        "out": { value: "file", help: "The output file", optional: true }
     },
 
 	run: function(p) {
@@ -137,9 +137,9 @@ var task_evaluate = {
     inputs: {
         "runs": { array: "irc:run", help: "The runs to evaluate" },
         "qrels": { json: "irc:qrels", help: "The relevance assessments" },
-        "details": { json: "xp:boolean", help: "Whether details results should be returned (query level)" },
-        "basedir": { json: "xp:path", optional: true, help: "The directory in which the task should be created"},
-        "$extension": { json: "xp:string", default: ".eval" }
+        "details": { json: "boolean", help: "Whether details results should be returned (query level)" },
+        "basedir": { json: "path", optional: true, help: "The directory in which the task should be created"},
+        "$extension": { json: "string", default: ".eval" }
     },
 
     run: function(p) {
@@ -179,7 +179,7 @@ tasks.add("irc:get-topics", {
     module: module_irc.id,
     inputs: {
         "topics": { json: "irc:topics", help: "The topics", copy: true },
-        "format": { value: "xp:string", help: "The output format", copy: "$format" },
+        "format": { value: "string", help: "The output format", copy: "$format" },
     },
 
     run: function(p) {

@@ -63,7 +63,7 @@ def log(message):
 
 def xppath(path):
     return {
-        "$type": "{%s}file" % xpns,
+        "$type": "%s.file" % xpns,
         "$value": path
     }
 
@@ -243,7 +243,7 @@ class AbstractDocuments(TaskObject):
             subcollections.append(subcollection.toJSON())
 
         r = {
-            "$type": "{%s}documents" % ircns,
+            "$type": "%s.documents" % ircns,
             "id": self.id,
             "path": xppath(self.path),
             "$format": self.type,
@@ -446,7 +446,7 @@ class AbstractTopics(TaskObject):
 
     def toJSON(self):
         return {
-            "$type": "{%s}topics" % ircns,
+            "$type": "%s.topics" % ircns,
             "id": self.id,
             "path": xppath(self.path),
             "$format": self.type,
@@ -553,7 +553,7 @@ class AbstractAssessments(TaskObject):
 
     def toJSON(self):
         return {
-            "$type": "{%s}qrels" % ircns,
+            "$type": "%s.qrels" % ircns,
             "id": self.id,
             "path": xppath(self.path),
             "format": self.type
