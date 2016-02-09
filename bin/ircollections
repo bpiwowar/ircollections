@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
 
 #
 # Main file to access IR tasks
@@ -10,6 +11,8 @@ from lxml.builder import ElementMaker
 import urllib.request
 
 import argparse
+import argcomplete
+
 import sys
 import os.path
 from os.path import join
@@ -20,8 +23,10 @@ import shutil
 import re
 import subprocess
 import json
-
+import logging
 import trec
+
+logging.basicConfig(level=logging.DEBUG)
 
 #
 # Global variables ###
@@ -68,14 +73,26 @@ def xppath(path):
     }
 
 
-def find(task, name):
+def find(taskid, task, enclosing, name):
     """ Find the first task ancestor that has an element of a given name
     """
     l = task.xpath("ancestor-or-self::irc:task[irc:%s][1]/irc:%s" %
                    (name, name), namespaces=ircNamespaces)
+
+    # Smart handling if nothing is found: use the task name
     if len(l) == 0:
-        raise Exception("Could not find a definition for task '%s'" % (name))
-    return l[0]
+        search = taskid.replace("/", ".")
+        while True:
+            xpath = "/irc:tasks/irc:%s/irc:%s[@id='%s']" % (enclosing, name, search)
+            logging.info("Searching for %s" % xpath)
+            l = task.xpath(xpath, namespaces=ircNamespaces)
+            if len(l) > 0:
+                return l[0].get("id")
+            ix = search.rfind(".")
+            if ix < 0: break
+            search = search[0:ix]
+        raise Exception("Could not find a definition for '%s'" % (name))
+    return l[0].text
 
 
 def findDefinition(definitions, id, parentType, type):
@@ -193,7 +210,7 @@ class Tasks():
         task = self.tasks.get(id)
         if task is None:
             raise Exception("No task [%s] can be found" % id)
-        return Task(self.definitions, task)
+        return Task(id, self.definitions, task)
 
 
 class TaskObject:
@@ -625,10 +642,11 @@ class Task():
     """Object representing a set task
     """
 
-    def __init__(self, doc, xml):
-        self.documents = Documents(doc, find(xml, "collection").text)
-        self.assessments = Assessments(doc, find(xml, "qrels").text)
-        self.topics = Topics(doc, find(xml, "topics").text)
+    def __init__(self, taskid, doc, xml):
+        self.taskid = taskid
+        self.documents = Documents(doc, find(taskid, xml, "collections", "collection"))
+        self.assessments = Assessments(doc, find(taskid, xml, "assessments", "qrels"))
+        self.topics = Topics(doc, find(taskid, xml, "topics-sets", "topics"))
 
     def toXML(self):
         root = XML.task(
@@ -890,6 +908,8 @@ class IRCException():
     def __init__(self):
         pass
 
+def TaskCompleter(prefix, **kwargs):
+    return Tasks(ircdir).getAllTasks().keys()
 
 def main(dir, argv):
     # create the top-level parser
@@ -945,8 +965,9 @@ def main(dir, argv):
         p.add_argument("--engine", choices=["none", "indri", "json"],
                        default="none", help="Customize files with a given engine")
         p.add_argument("--restrict", help="Restrict to a sub-collection")
-        p.add_argument("task", help="The task name")
+        p.add_argument("task", help="The task name").completer = TaskCompleter
 
+    argcomplete.autocomplete(parser)
 
     args = parser.parse_args()
     if args.command is None:

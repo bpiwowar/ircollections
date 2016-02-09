@@ -2,23 +2,23 @@
 <tasks xmlns="net.bpiwowar.irc">
     <!--
 
-	This file contains the definitions of IR tasks and should not be modified: 
+	This file contains the definitions of IR tasks and should not be modified:
 	Use collections.xml to set local settings
-	
+
 -->
     <!--
-  
 
-           TREC  
-           
-           Information about collections can be found at 
+
+           TREC
+
+           Information about collections can be found at
            http://trec.nist.gov/data/test_coll.html
 
   -->
     <collections>
         <!-- Global definitions: trec collections are of type trec -->
         <collection pattern="trec.*" type="trec"/>
-        
+
         <!-- Sub-collections used in TREC -->
         <collection id="trec.ap88" description="Associated Press (1988)" path="cols/ap88.col.files">
             <document pattern="^AP88.*$"/>
@@ -29,13 +29,13 @@
         <collection id="trec.ap90" description="Associated Press (1990)" path="cols/ap90.col.files">
             <document pattern="^AP90.*$"/>
         </collection>
-        
-    
+
+
         <collection id="trec.cr1"/>
         <collection id="trec.doe1">
             <document pattern="^DOE.*$"/>
         </collection>
-        
+
         <collection id="trec.fbis1"/>
         <collection id="trec.fr88">
             <document pattern="^FR88.*$"/>
@@ -61,28 +61,26 @@
         <collection id="trec.5.adhoc" ref="trec.ap88 trec.cr1 trec.fr88 trec.fr94 trec.ft1 trec.wsj90 trec.wsj91 trec.wsj92 trec.ziff2" path="cols/trec5.col.files"/>
         <collection id="trec.6.adhoc" ref="trec.cr1 trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
         <collection id="trec.7.adhoc" ref="trec.fbis1 trec.fr94 trec.ft1 trec.la8990"/>
-        
+
         <!-- The TREC web files -->
         <collection id="trec.wt10g" type="trec.web"/>
         <collection id="trec.dotgov" type="trec.web"/>
         <collection id="trec.dotgov2" type="trec.web"/>
         <collection id="trec.aquaint" type="trec.web"/>
-        
+
         <!-- ClueWeb collections are WARC/0.18 files -->
         <collection id="trec.clueweb09A" type="warc/0.18" description="ClueWeb09 Subset A"/>
         <collection id="trec.clueweb09b" type="warc/0.18" description="ClueWeb09 Subset B">
             <!-- Defines a sub-collection -->
             <subcollection id="en0000" file-pattern="en0000-.*" document-pattern="en0000/\d+\.warc.*"/>
         </collection>
-        
+         <collection id="trec.clueweb12b" type="warc/0.18" description="ClueWeb12 Subset B"/>
     </collections>
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
     <topics-sets>
         <!-- Global definitions: trec collections are of type trec -->
         <topics pattern="trec.*" />
@@ -118,8 +116,8 @@
             <data type="gz"><url>http://trec.nist.gov/data/topics_eng/topics.401-450.gz</url></data>
             <property name="comma-separated-phrases"/>
         </topics>
-        
-        
+
+
         <!-- Robust 2003-2005 -->
         <topics id="trec.2003.robust" type="trec" path="trec/2003/robust/topics">
             <data><url>http://trec.nist.gov/data/topics_eng/robust.03.final_100.txt</url></data>
@@ -134,34 +132,38 @@
         </topics>
 
 
-        <topics id="trec.2009.web" path="trec/2009/web/wt09.topics.full.xml" type="trec.web.2009">
+        <topics id="ir.trec.2009.web" path="trec/2009/web/wt09.topics.full.xml" type="trec.web.2009">
             <data><url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url></data>
         </topics>
 
-        
+        <topics id="ir.trec.2010.web" path="trec/wt10/web/wt2010-topics.xml" type="trec.web.2010">
+            <data><url>http://trec.nist.gov/data/web/10/wt2010-topics.xml</url></data>
+        </topics>
+
+
     </topics-sets>
 
     <assessments>
         <!-- Global definitions: trec collections are of type trec -->
         <qrels pattern="trec\..*\.adhoc" type="trec.adhoc"/>
-        
-        
+
+
         <!-- TREC-1 to TREC-8 -->
         <qrels id="trec.1.adhoc" path="trec/trec1/adhoc/qrels.51-100" type="trec">
            <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.51-100.disk1.disk2.parts1-5.tar.gz</url></data>
         </qrels>
-        
+
         <qrels id="trec.2.adhoc" path="trec/trec2/adhoc/qrels.101-150" type="trec">
             <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.101-150.disk1.disk2.parts1-5.tar.gz</url></data>
         </qrels>
-        
+
         <qrels id="trec.3.adhoc" path="trec/trec3/adhoc/qrels.151-200" type="trec">
             <data type="tar.gz#gz">
                 <url>http://trec.nist.gov/data/qrels_eng/qrels.151-200.201-250.disks1-3.all.tar.gz</url>
                 <filter>^(1\d\d|200)\s</filter>
             </data>
         </qrels>
-        
+
         <qrels id="trec.4.adhoc" path="trec/trec2/adhoc/qrels.201-250" type="trec">
             <data type="tar.gz#gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.201-250.disk2.disk3.parts1-5.tar.gz</url></data>
         </qrels>
@@ -177,7 +179,7 @@
         <qrels id="trec.8.adhoc" path="trec/trec8/adhoc/qrels.401-450" type="trec">
             <data type="tar.gz"><url>http://trec.nist.gov/data/qrels_eng/qrels.trec8.adhoc.parts1-5.tar.gz</url></data>
         </qrels>
-        
+
         <!-- ROBUST 2003-05 -->
         <qrels id="trec.2003.robust" type="trec">
             <data><url>http://trec.nist.gov/data/robust/qrels.robust2004.txt</url></data>
@@ -189,25 +191,33 @@
         <qrels id="trec.2005.robust" type="trec">
             <data><url>http://trec.nist.gov/data/robust/05/TREC2005.qrels.txt</url></data>
         </qrels>
-        
-        
-        
+
+
+
         <!-- QRels for the TREC 2009 Web Track -->
-        <qrels id="trec.2009.web.adhoc-A" path="trec/2009/web/qrels-1-50-a.dat" type="trec">
+        <qrels id="trec.2009.web.adhoc.a" path="trec/2009/web/qrels-1-50-a.dat" type="trec">
             <data type="gz"><url>http://trec.nist.gov/data/web/09/prels.catA.1-50.gz</url></data>
         </qrels>
-        <qrels id="trec.2009.web.adhoc-B" path="trec/2009/web/qrels-1-50-b.dat" type="trec">
+        <qrels id="ir.trec.2009.web.adhoc.b" path="trec/2009/web/qrels-1-50-b.dat" type="trec">
             <data type="gz"><url>http://trec.nist.gov/data/web/09/prels.catB.1-50.gz</url></data>
         </qrels>
-        <qrels id="trec.2009.web.diversity" type="trec.diversity">
+        <qrels id="ir.trec.2009.web.diversity.b" type="trec.diversity">
             <data type="gz"><url>http://trec.nist.gov/data/web/09/qrels.diversity.gz</url></data>
         </qrels>
 
-        
+        <!-- 2010 -->
+
+         <qrels id="ir.trec.2010.web.adhoc.b" path="trec/2010/web/qrels-1-50-b.dat" type="trec">
+            <data><url>http://trec.nist.gov/data/web/10/10.adhoc-qrels.final</url></data>
+        </qrels>
+        <qrels id="trec.2010.web.diversity" type="trec.diversity">
+            <data><url>http://trec.nist.gov/data/web/10/10.diversity-qrels.final</url></data>
+        </qrels>
+
     </assessments>
-    
+
     <task abstract="yes" name="ir">
-    
+
         <task abstract="yes" name="trec">
             <!-- trec1 -->
             <task abstract="yes" name="1992">
@@ -251,6 +261,8 @@
                     <qrels>trec.5.adhoc</qrels>
                 </task>
             </task>
+
+
             <!-- trec6 -->
             <task abstract="yes" name="1997">
                 <type>TREC</type>
@@ -260,6 +272,7 @@
                     <qrels>trec.6.adhoc</qrels>
                 </task>
             </task>
+
             <!-- trec7 -->
             <task abstract="yes" name="1998">
                 <type>TREC</type>
@@ -269,6 +282,7 @@
                     <qrels>trec.7.adhoc</qrels>
                 </task>
             </task>
+
             <!-- TREC 8 -->
             <task name="1999" abstract="yes">
                 <type>TREC</type>
@@ -277,8 +291,13 @@
                     <topics>trec.8.adhoc</topics>
                     <qrels>trec.8.adhoc</qrels>
                 </task>
+                <task name="web" description="Web track of TREC-8 (1999)">
+                    <collection></collection>
+                    <topics></topics>
+                    <qrels></qrels>
+                </task>
             </task>
-        
+
             <!-- Interactive TREC 678 -->
             <task name="678" abstract="yes">
                 <task name="interactive">
@@ -288,37 +307,38 @@
                     <qrels type="trec.aspects" path="trec/trec678.interactive/trec678.interactive.qrels"/>
                 </task>
             </task>
-        
+
             <!-- TREC 9 -->
             <task name="2000" abstract="yes">
                 <type>TREC</type>
-                <task name="web" description="Web task TREC-9">
+                <task name="web" description="Web task TREC-9 (wt10g)">
                     <collection>wt10g</collection>
                     <topics>trec.9.web</topics>
                     <qrels type="trec.adhoc" path="trec/trec9/web/trec9.web.qrels"/>
                 </task>
             </task>
+
             <!-- TREC 2001 -->
             <task name="2001" abstract="yes">
                 <type>TREC</type>
-                <task name="web" description="Web task TREC-2001">
+                <task name="web" description="Web task TREC 2001 (wt10g)">
                     <collection>wt10g</collection>
                     <topics>trec.2001.web</topics>
                     <qrels type="trec.adhoc">trec/trec2001/web/trec2001.web.qrels</qrels>
                 </task>
             </task>
-        
-        
+
+
             <!-- TREC 2003 -->
             <task name="2003" abstract="yes">
                 <type>TREC</type>
-            
+
                 <task name="robust" description="Robust task of TREC 2003">
                     <collection>trec.7.adhoc</collection>
                     <topics>trec.2003.robust</topics>
                     <qrels>trec.2003.robust</qrels>
                 </task>
-            
+
                 <task name="web" description="Web task of TREC-2003 (distillation + named page)">
                     <collection>trec.dotgov</collection>
                     <topics>trec.2003.web</topics>
@@ -329,8 +349,8 @@
                     </task>
                 </task>
             </task>
-        
-        
+
+
             <!-- TREC 2004 -->
             <task name="2004" abstract="yes">
                 <type>TREC</type>
@@ -339,70 +359,91 @@
                     <topics>trec.2004.robust</topics>
                     <qrels>trec.2004.robust</qrels>
                 </task>
-                <task name="web" description="Web task of TREC 2004">
+                <task name="web" description="Web task of TREC 2004 (.gov)">
                     <collection>trec.dotgov</collection>
                     <topics>trec.2004.web</topics>
                     <qrels>trec/trec2004/web/trec2004.web.qrels</qrels>
                 </task>
             </task>
-        
+
             <!-- TREC 2005 -->
             <task name="2005" abstract="yes">
                 <type>TREC</type>
-                <task name="robust" description="Robust task of TREC 2005">
+                <task name="robust" description="Robust task of TREC 2005 (Aquaint)">
                     <collection>trec.aquaint</collection>
                     <topics>trec.2005.robust</topics>
                     <qrels>trec.2005.robust</qrels>
                 </task>
+                <task name="web" description="Web task of TREC 2004 (.gov)">
+                    <collection>trec.dotgov</collection>
+                    <topics>trec.2005.web</topics>
+                    <qrels>trec/trec2004/web/trec2005.web.qrels</qrels>
+                </task>
+
             </task>
-        
+
             <!-- TREC 2006 -->
             <task name="2006" abstract="yes">
                 <type>TREC</type>
-                <task name="terabyte" description="Robust task of TREC 2005">
+                <task name="terabyte" description="Terabyte task of TREC 2006 (.gov 2)">
                     <collection>trec.dotgov2</collection>
                     <topics>trec.2006.terabyte</topics>
                     <qrels>trec/trec2006/terabyte/trec2006.terabyte.701-850.qrels</qrels>
                 </task>
             </task>
-        
+
             <!-- TREC 2009 -->
-            <task name="2009" abstract="yes">
+            <task name="2009" abstract="yes" description="TREC 2009">
                 <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2009.html">
-                    <!-- Topics are common to all web tasks -->
-                    <topics>trec.2009.web</topics>
-                
                     <task name="diversity" description="Web diversity track for TREC 2009" abstract="yes">
                         <type>TREC</type>
-                        <task name="clueweb09b" description="Web diversity track for TREC 2009 (ClueWeb09B data collection)">
+                        <task name="b" description="Web diversity track for TREC 2009 (ClueWeb09B data collection)">
                             <collection>trec.clueweb09b</collection>
-                            <qrels>trec.2009.web.diversity</qrels>
                         </task>
                     </task>
-                
-                    <task name="adhoc" description="Web adhoc track for TREC 2009 (ClueWeb-B)">
-                        <collection>trec.clueweb09b</collection>
-                        <qrels>trec.2009.web.adhoc-B</qrels>
+
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb09B data collection">
+                            <collection>trec.clueweb09b</collection>
+                        </task>
                     </task>
-                
+
                 </task>
             </task>
-        
+
             <!-- TREC 2010 -->
             <task name="2010" abstract="yes">
                 <type>TREC</type>
+
                 <task name="session" description="Session track of TREC 2010" abstract="yes">
                     <task name="clueweb09b" description="Session track of TREC 2010 using ClueWeb09B">
                         <collection>trec.clueweb09b</collection>
                         <topics>trec.2010.session</topics>
                     </task>
                 </task>
+
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html">
+                    <task name="adhoc" description="Web adhoc track for TREC 2010 (ClueWeb)">
+                        <task name="b">
+                            <collection>trec.clueweb09b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" abstract="yes">
+                        <type>TREC</type>
+                        <task name="clueweb09b" description="Web diversity track for TREC 2009 (ClueWeb09B data collection)"/>
+                        <collection>trec.clueweb09b</collection>
+                    </task>
+
+                </task>
+
+
             </task>
         </task>
-    
-    
+
+
         <!--
-  
+
 
                INEX
 
