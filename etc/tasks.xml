@@ -74,6 +74,7 @@
             <!-- Defines a sub-collection -->
             <subcollection id="en0000" file-pattern="en0000-.*" document-pattern="en0000/\d+\.warc.*"/>
         </collection>
+
          <collection id="trec.clueweb12b" type="warc/0.18" description="ClueWeb12 Subset B"/>
     </collections>
 
@@ -136,10 +137,22 @@
             <data><url>http://trec.nist.gov/data/web/09/wt09.topics.full.xml</url></data>
         </topics>
 
-        <topics id="ir.trec.2010.web" path="trec/wt10/web/wt2010-topics.xml" type="trec.web.2010">
+        <topics id="ir.trec.2010.web" path="trec/wt10/web/wt2010-topics.xml" type="trec.web.2009">
             <data><url>http://trec.nist.gov/data/web/10/wt2010-topics.xml</url></data>
         </topics>
 
+        <topics id="ir.trec.2011.web" path="trec/wt11/web/full-topics.xml" type="trec.web.2009">
+            <data><url>http://trec.nist.gov/data/web/11/full-topics.xml</url></data>
+        </topics>
+        <topics id="ir.trec.2012.web" path="trec/wt12/web/full-topics.xml" type="trec.web.2009">
+            <data><url>http://trec.nist.gov/data/web/12/full-topics.xml</url></data>
+        </topics>
+        <topics id="ir.trec.2013.web" path="trec/web/2013/trec2013-topics.xml" type="trec.web.2009">
+            <data><url>http://trec.nist.gov/data/web/2013/trec2013-topics.xml</url></data>
+        </topics>
+        <topics id="ir.trec.2014.web" path="trec/web/2014/trec2014-topics.xml" type="trec.web.2009">
+            <data><url>http://trec.nist.gov/data/web/2014/trec2014-topics.xml</url></data>
+        </topics>
 
     </topics-sets>
 
@@ -214,6 +227,31 @@
             <data><url>http://trec.nist.gov/data/web/10/10.diversity-qrels.final</url></data>
         </qrels>
 
+        <!-- 2011 -->
+         <qrels id="ir.trec.2011.web.adhoc.b" path="trec/web/11/qrels.adhoc" type="trec">
+            <data><url>http://trec.nist.gov/data/web/11/qrels.adhoc</url></data>
+        </qrels>
+        <qrels id="ir.trec.2011.web.diversity.b" path="trec/web/11/qrels.diversity" type="trec">
+            <data><url>http://trec.nist.gov/data/web/11/qrels.diversity</url></data>
+        </qrels>
+
+        <!-- 2012 -->
+         <qrels id="ir.trec.2012.web.adhoc.b" path="trec/web/12/qrels.adhoc" type="trec">
+            <data><url>http://trec.nist.gov/data/web/12/qrels.adhoc</url></data>
+        </qrels>
+        <qrels id="ir.trec.2012.web.diversity.b" path="trec/web/12/qrels.diversity" type="trec">
+            <data><url>http://trec.nist.gov/data/web/12/qrels.diversity</url></data>
+        </qrels>
+
+        <!-- 2013 -->
+         <qrels id="ir.trec.2013.web.adhoc.b" path="trec/web/2013/qrels.all.txt" type="trec">
+            <data><url>http://trec.nist.gov/data/web/2013/qrels.all.txt</url></data>
+        </qrels>
+
+        <!-- 2014 -->
+         <qrels id="ir.trec.2014.web.adhoc.b" path="trec/web/2014/qrels.all.txt" type="trec">
+            <data><url>http://trec.nist.gov/data/web/2014/qrels.all.txt</url></data>
+        </qrels>
     </assessments>
 
     <task abstract="yes" name="ir">
@@ -392,6 +430,8 @@
                 </task>
             </task>
 
+
+
             <!-- TREC 2009 -->
             <task name="2009" abstract="yes" description="TREC 2009">
                 <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2009.html">
@@ -412,34 +452,171 @@
             </task>
 
             <!-- TREC 2010 -->
-            <task name="2010" abstract="yes">
+            <task name="2010" abstract="yes" description="TREC 2010">
                 <type>TREC</type>
 
-                <task name="session" description="Session track of TREC 2010" abstract="yes">
-                    <task name="clueweb09b" description="Session track of TREC 2010 using ClueWeb09B">
+                <task name="session" description="Session track" abstract="yes" type="adhoc session">
+                    <task name="b" description="Session track of TREC 2010 using ClueWeb09B">
                         <collection>trec.clueweb09b</collection>
                         <topics>trec.2010.session</topics>
                     </task>
                 </task>
 
-                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html">
-                    <task name="adhoc" description="Web adhoc track for TREC 2010 (ClueWeb)">
-                        <task name="b">
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html" type="adhoc">
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb09B">
                             <collection>trec.clueweb09b</collection>
                         </task>
                     </task>
 
-                    <task name="diversity" description="Web diversity track" abstract="yes">
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
                         <type>TREC</type>
-                        <task name="clueweb09b" description="Web diversity track for TREC 2009 (ClueWeb09B data collection)"/>
+                        <task name="b" description="ClueWeb09B"/>
                         <collection>trec.clueweb09b</collection>
                     </task>
 
                 </task>
-
-
             </task>
-        </task>
+
+
+            <!-- TREC 2011 -->
+            <task name="2011" abstract="yes" description="TREC 2011">
+                <type>TREC</type>
+
+                <task name="session" description="Session track" abstract="yes" type="adhoc session">
+                    <task name="b" description="Session track">
+                        <collection>trec.clueweb09b</collection>
+                        <topics>trec.2011.session</topics>
+                    </task>
+                </task>
+
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html" type="adhoc">
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb09B">
+                            <collection>trec.clueweb09b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
+                        <type>TREC</type>
+                        <task name="b" description="ClueWeb09B"/>
+                        <collection>trec.clueweb09b</collection>
+                    </task>
+                </task>
+            </task>
+
+
+            <!-- TREC 2011 -->
+            <task name="2011" abstract="yes" description="TREC 2011" type="adhoc">
+                <type>TREC</type>
+
+                <task name="session" description="Session track" abstract="yes" type="session">
+                    <task name="b" description="Session track">
+                        <collection>trec.clueweb09b</collection>
+                        <topics>trec.2011.session</topics>
+                    </task>
+                </task>
+
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html" type="web">
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb09B">
+                            <collection>trec.clueweb09b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
+                        <type>TREC</type>
+                        <task name="b" description="ClueWeb09B"/>
+                        <collection>trec.clueweb09b</collection>
+                    </task>
+                </task>
+            </task>
+
+
+            <!-- TREC 2012 -->
+            <task name="2012" abstract="yes" description="TREC 2012">
+                <type>TREC</type>
+
+                <task name="session" description="Session track" abstract="yes" type="session">
+                    <task name="b" description="Session track">
+                        <collection>trec.clueweb12b</collection>
+                        <topics>trec.2012.session</topics>
+                    </task>
+                </task>
+
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html" type="web">
+                    <task name="adhoc" description="Adhoc track">
+                        <task name="b" description="ClueWeb12B">
+                            <collection>trec.clueweb12b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
+                        <type>TREC</type>
+                        <task name="b" description="ClueWeb12B"/>
+                        <collection>trec.clueweb12b</collection>
+                    </task>
+                </task>
+            </task>
+
+
+            <!-- TREC 2013 -->
+            <task name="2013" abstract="yes" description="TREC 2013">
+                <type>TREC</type>
+
+                <task name="session" description="Session track" abstract="yes" type="adhoc session">
+                    <task name="b" description="Session track">
+                        <collection>trec.clueweb12b</collection>
+                        <topics>trec.2013.session</topics>
+                    </task>
+                </task>
+
+                <task name="web" abstract="yes" url="http://research.microsoft.com/en-us/projects/trec-web-2013/" type="adhoc">
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb12B">
+                            <collection>trec.clueweb12b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
+                        <type>TREC</type>
+                        <task name="b" description="ClueWeb12B"/>
+                        <collection>trec.clueweb12b</collection>
+                    </task>
+                </task>
+            </task>
+
+
+
+            <!-- TREC 2014 -->
+            <task name="2014" abstract="yes" description="TREC 2014">
+                <type>TREC</type>
+
+                <task name="session" description="Session track" abstract="yes" type="adhoc session">
+                    <task name="b" description="Session track">
+                        <collection>trec.clueweb12b</collection>
+                        <topics>trec.2014.session</topics>
+                    </task>
+                </task>
+
+                <task name="web" abstract="yes" url="http://plg.uwaterloo.ca/~trecweb/2010.html" type="adhoc">
+                    <task name="adhoc" description="Web adhoc track">
+                        <task name="b" description="ClueWeb12B">
+                            <collection>trec.clueweb12b</collection>
+                        </task>
+                    </task>
+
+                    <task name="diversity" description="Web diversity track" type="adhoc diversity" abstract="yes">
+                        <type>TREC</type>
+                        <task name="b" description="ClueWeb12B"/>
+                        <collection>trec.clueweb12b</collection>
+                    </task>
+                </task>
+            </task>
+
+
+
+        </task><!-- TREC end -->
 
 
         <!--
