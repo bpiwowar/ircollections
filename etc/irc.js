@@ -34,6 +34,15 @@ module = xpm.add_module(module_irc);
 function get_task(p) {
     logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
+    // Retrieve from cache
+    var cache_id = irc + ".get-task";
+    var cache_key = { path: irc_dir.uri(), command: $(p.command), id: $(p.id), restrict: $(p.restrict), engine: $(p.engine) };
+    var json = cache(cache_id, cache_key);
+    if (json) {
+        logger.debug("Using value from cache")
+        return json;
+    }
+
 	args= [irc_bin, $(p.command), "--engine", $(p.engine)];
 	if ($(p.restrict))
 		args = args.concat("--restrict", $(p.restrict));
@@ -47,7 +56,11 @@ function get_task(p) {
 	output = xpm.evaluate(command);
     logger.debug("Output is: %s", output);
 
-	return JSON.parse(output.trim());
+    json = JSON.parse(output.trim());
+    logger.debug("Caching IRC output");
+    cache(cache_id, cache_key, json, 7 * 24 * 3600); // 1 week cache
+
+	return json;
 }
 
 tasks.add("irc:get-task", {
