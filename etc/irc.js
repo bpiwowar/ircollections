@@ -35,7 +35,7 @@ function get_task(p) {
     logger.info("IR task is [%s], restriction [%s]", $(p.id), $(p.restrict));
 
     // Retrieve from cache
-    var cache_id = irc + ".get-task";
+    var cache_id = irc("get-task").toString();
     var cache_key = { path: irc_dir.uri(), command: $(p.command), id: $(p.id), restrict: $(p.restrict), engine: $(p.engine) };
     var json = cache(cache_id, cache_key);
     if (json) {
