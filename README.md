@@ -1,3 +1,5 @@
+*Warning*: This project is deprecated in favor of [datasets](https://github.com/bpiwowar/datasets), a more general toolset.
+
 # Introduction
 
 [![Documentation Status](https://readthedocs.org/projects/datasets/badge/?version=latest)](https://readthedocs.org/projects/datasets/?badge=latest)
